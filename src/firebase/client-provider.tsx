@@ -1,6 +1,26 @@
 'use client';
 
-import { initializeFirebase, FirebaseProvider } from '@/firebase';
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { firebaseConfig } from './config';
+import { FirebaseProvider } from './provider';
+
+// Centralized initialization function
+function initializeFirebase() {
+  if (getApps().length) {
+    const app = getApp();
+    return {
+      firebaseApp: app,
+      auth: getAuth(app),
+      firestore: getFirestore(app),
+    };
+  }
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const firestore = getFirestore(firebaseApp);
+  return { firebaseApp, auth, firestore };
+}
 
 const { firebaseApp, auth, firestore } = initializeFirebase();
 
