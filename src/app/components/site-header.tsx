@@ -6,8 +6,10 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <Logo isLink={true} />
-        <nav className="ml-10 hidden md:flex items-center space-x-6 text-sm font-medium">
+        <div className="flex flex-1 items-center justify-start">
+          <Logo isLink={true} />
+        </div>
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           <Link href="/" className="text-foreground/80 transition-colors hover:text-foreground">
             Home
           </Link>
