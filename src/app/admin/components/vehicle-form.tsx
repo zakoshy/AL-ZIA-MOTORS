@@ -17,6 +17,7 @@ import { AlertCircle, CheckCircle, UploadCloud, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createVehicle, updateVehicle } from "@/lib/actions";
+import { cn } from "@/lib/utils";
 
 const vehicleFormSchema = z.object({
   make: z.string().min(2, "Make is required"),
@@ -44,6 +45,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const router = useRouter();
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
@@ -54,37 +56,71 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     },
   });
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+  const handleFiles = async (files: FileList | null) => {
     if (!files) return;
 
-    const newPreviews: ImagePreview[] = [];
-    for (const file of Array.from(files)) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataUri = e.target?.result as string;
-        try {
-          const result = await optimizeImageAndFlag({ imageDataUri: dataUri });
-          newPreviews.push({
-            fileName: file.name,
-            dataUri: result.optimizedImageDataUri || dataUri,
-            flagged: result.flagForReview,
-            reason: result.reason,
-          });
-        } catch (error) {
-           newPreviews.push({
-            fileName: file.name,
-            dataUri: dataUri,
-            flagged: true,
-            reason: "Optimization failed.",
-          });
-        }
-        setImagePreviews(prev => [...prev, ...newPreviews].filter((v,i,a)=>a.findIndex(t=>(t.fileName === v.fileName))===i));
-      };
-      reader.readAsDataURL(file);
+    const filesToProcess = Array.from(files).filter(
+      (file) => !imagePreviews.some((p) => p.fileName === file.name)
+    );
+
+    if (filesToProcess.length === 0) return;
+
+    const fileProcessingPromises = filesToProcess.map((file) => {
+      return new Promise<ImagePreview>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const dataUri = e.target?.result as string;
+          if (!dataUri) return reject(new Error('Failed to read file.'));
+          try {
+            const result = await optimizeImageAndFlag({ imageDataUri: dataUri });
+            resolve({
+              fileName: file.name,
+              dataUri: result.optimizedImageDataUri || dataUri,
+              flagged: result.flagForReview,
+              reason: result.reason,
+            });
+          } catch (error) {
+            resolve({
+              fileName: file.name,
+              dataUri,
+              flagged: true,
+              reason: 'Optimization failed.',
+            });
+          }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+      });
+    });
+
+    try {
+      const newPreviews = await Promise.all(fileProcessingPromises);
+      setImagePreviews((prev) => [...prev, ...newPreviews]);
+    } catch (error) {
+      console.error('Error processing files:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Image Upload Error',
+        description: 'There was a problem reading one of the files.',
+      });
     }
   };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleFiles(event.target.files);
+    event.target.value = '';
+  };
   
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+      e.dataTransfer.clearData();
+    }
+  };
+
   const removeImage = (fileName: string) => {
     setImagePreviews(previews => previews.filter(p => p.fileName !== fileName));
   };
@@ -196,11 +232,22 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-             <div className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted">
+             <label
+                htmlFor="file-upload"
+                onDragEnter={() => setIsDragging(true)}
+                onDragLeave={() => setIsDragging(false)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                className={cn(
+                    "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors",
+                    isDragging && "bg-primary/10 border-primary"
+                )}
+            >
               <UploadCloud className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-              <Input type="file" multiple onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-            </div>
+            </label>
+            <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" />
+
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {imagePreviews.map((img) => (
