@@ -23,7 +23,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
-                defaultValue="admin@jautohub.com"
+                defaultValue="admin@alziatrading.com"
               />
             </div>
             <div className="grid gap-2">

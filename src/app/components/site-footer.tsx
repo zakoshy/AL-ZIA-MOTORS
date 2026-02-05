@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="flex flex-col items-center justify-center gap-4 md:flex-row md:justify-between">
           <Logo />
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} J-Auto Hub. All Rights Reserved.
+            &copy; {new Date().getFullYear()} AL-ZIA TRADING CO.LTD. All Rights Reserved.
           </p>
         </div>
       </div>

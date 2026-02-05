@@ -6,7 +6,7 @@ import { SiteHeader } from '@/app/components/site-header';
 import { SiteFooter } from '@/app/components/site-footer';
 
 export const metadata: Metadata = {
-  title: 'J-Auto Hub',
+  title: 'AL-ZIA TRADING CO.LTD',
   description: 'High-quality Japanese vehicle import and export.',
 };
 
