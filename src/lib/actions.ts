@@ -8,6 +8,7 @@ const vehicleSchema = z.object({
   model: z.string().min(1, "Model is required."),
   year: z.coerce.number().int().min(1900).max(new Date().getFullYear() + 1),
   price: z.coerce.number().positive("Price must be a positive number."),
+  currency: z.enum(["USD", "KSh"]),
   mileage: z.coerce.number().int().nonnegative("Mileage cannot be negative."),
   chassisNumber: z.string().min(5, "Chassis number must be at least 5 characters."),
   fuel: z.enum(["Petrol", "Diesel"]),

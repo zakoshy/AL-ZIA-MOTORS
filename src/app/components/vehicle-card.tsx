@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 type VehicleCardProps = {
   vehicle: Vehicle;
@@ -11,15 +11,6 @@ type VehicleCardProps = {
 
 export function VehicleCard({ vehicle }: VehicleCardProps) {
   const featureImage = vehicle.images.find(img => img.isFeature);
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <Link href={`/vehicles/${vehicle.id}`} className="group">
@@ -57,7 +48,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           <p className="text-sm text-muted-foreground">{vehicle.year}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
-          <p className="text-xl font-bold text-primary">{formatCurrency(vehicle.price)}</p>
+          <p className="text-xl font-bold text-primary">{formatCurrency(vehicle.price, vehicle.currency)}</p>
           <div className="text-sm text-muted-foreground">{vehicle.mileage.toLocaleString()} km</div>
         </CardFooter>
       </Card>

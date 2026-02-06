@@ -60,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/vehicles", icon: Car, label: "Vehicles" },
     { href: "/admin/sales-history", icon: History, label: "Sales History" },
     { href: "/admin/salespeople", icon: Users, label: "Salespeople" },
+    { href: "/admin/profile", icon: User, label: "Profile" },
   ];
 
   return (
@@ -89,7 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </SidebarContent>
           <SidebarFooter>
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
+              <Link href="/admin/profile" className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   {avatar && <AvatarImage src={user.photoURL || avatar.imageUrl} alt={user.displayName || "Admin"} />}
                   <AvatarFallback>
@@ -98,11 +99,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </Avatar>
                 <div className="flex flex-col group-data-[collapsible=icon]:hidden">
                   <span className="text-sm font-semibold">{user.displayName || user.email}</span>
-                   <Link href="/" className="text-xs text-muted-foreground hover:underline">
-                    Exit Admin
-                  </Link>
+                   <span className="text-xs text-muted-foreground hover:underline">
+                    View Profile
+                  </span>
                 </div>
-              </div>
+              </Link>
                <Button variant="ghost" size="icon" onClick={handleLogout} className="group-data-[collapsible=icon]:hidden">
                   <LogOut className="h-4 w-4" />
                </Button>

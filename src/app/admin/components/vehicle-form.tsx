@@ -30,6 +30,7 @@ const vehicleFormSchema = z.object({
   mileage: z.coerce.number().nonnegative("Mileage must be a positive number"),
   condition: z.enum(["New", "Used", "Damaged"]),
   price: z.coerce.number().positive("Price must be a positive number"),
+  currency: z.enum(["USD", "KSh"]),
   status: z.enum(["Incoming", "Available", "Sold"]),
   inspectionStatus: z.enum(["Pending", "Passed", "Failed"]),
 });
@@ -60,6 +61,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       inspectionStatus: "Pending",
       fuel: "Petrol",
       make: "",
+      currency: "USD",
     },
   });
 
@@ -232,10 +234,29 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price (USD)</FormLabel>
+                <FormLabel>Price</FormLabel>
                 <FormControl>
                   <Input type="number" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="KSh">KSh</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

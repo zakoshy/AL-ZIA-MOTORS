@@ -20,14 +20,7 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
+import { formatCurrency } from "@/lib/utils";
 
 export function VehicleTable({ vehicles }: { vehicles: Vehicle[] }) {
   if (vehicles.length === 0) {
@@ -75,7 +68,7 @@ export function VehicleTable({ vehicles }: { vehicles: Vehicle[] }) {
                 {vehicle.inspectionStatus}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">{formatCurrency(vehicle.price)}</TableCell>
+            <TableCell className="text-right">{formatCurrency(vehicle.price, vehicle.currency)}</TableCell>
             <TableCell>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

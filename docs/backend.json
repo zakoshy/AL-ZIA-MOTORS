@@ -13,6 +13,7 @@
         "mileage": { "type": "number" },
         "condition": { "type": "string", "enum": ["New", "Used", "Damaged"] },
         "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "KSh"] },
         "status": { "type": "string", "enum": ["Incoming", "Available", "Sold"] },
         "inspectionStatus": { "type": "string", "enum": ["Pending", "Passed", "Failed"] },
         "arrivalDate": { "type": "string", "format": "date" },
@@ -33,7 +34,7 @@
             }
         }
       },
-      "required": ["make", "model", "year", "price", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel"]
+      "required": ["make", "model", "year", "price", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel", "currency"]
     },
     "salesperson": {
       "title": "Salesperson",

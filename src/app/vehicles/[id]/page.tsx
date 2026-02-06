@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, GaugeCircle, ShieldCheck, Tag, Car, CircleDollarSign, Fuel, Fingerprint } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { formatCurrency } from "@/lib/utils";
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
   const vehicle = getVehicleById(params.id);
@@ -13,14 +14,6 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
   if (!vehicle) {
     notFound();
   }
-  
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
   
   const featureImage = vehicle.images.find(img => img.isFeature) || vehicle.images[0];
   const galleryImages = vehicle.images;
@@ -69,7 +62,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
           <div className="my-6">
             <p className="text-4xl font-bold text-primary flex items-center gap-2">
               <CircleDollarSign className="h-8 w-8"/>
-              {formatCurrency(vehicle.price)}
+              {formatCurrency(vehicle.price, vehicle.currency)}
             </p>
           </div>
 

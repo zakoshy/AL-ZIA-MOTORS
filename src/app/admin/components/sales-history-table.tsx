@@ -8,16 +8,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-  }).format(amount);
-};
-
-export function SalesHistoryTable({ vehicles }: { vehicles: Pick<Vehicle, 'id' | 'make' | 'model' | 'year' | 'saleDate' | 'buyerDetails' | 'finalPrice'>[] }) {
+export function SalesHistoryTable({ vehicles }: { vehicles: Pick<Vehicle, 'id' | 'make' | 'model' | 'year' | 'saleDate' | 'buyerDetails' | 'finalPrice' | 'currency'>[] }) {
 
    if (vehicles.length === 0) {
     return (
@@ -53,7 +46,7 @@ export function SalesHistoryTable({ vehicles }: { vehicles: Pick<Vehicle, 'id' |
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{vehicle.saleDate}</TableCell>
                 <TableCell className="hidden lg:table-cell">{vehicle.buyerDetails}</TableCell>
-                <TableCell className="text-right">{formatCurrency(vehicle.finalPrice || 0)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(vehicle.finalPrice || 0, vehicle.currency)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
