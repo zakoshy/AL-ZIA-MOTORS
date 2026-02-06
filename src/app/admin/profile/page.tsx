@@ -12,8 +12,9 @@ import { z } from 'zod';
 import { updateProfile } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
-import { Loader2, User as UserIcon } from 'lucide-react';
+import { Loader2, User as UserIcon, Camera } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
   displayName: z.string().min(1, "Display name cannot be empty."),
@@ -25,7 +26,10 @@ export default function ProfilePage() {
   const user = useUser();
   const auth = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const avatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
   const form = useForm<ProfileFormValues>({
@@ -53,19 +57,44 @@ export default function ProfilePage() {
       return null; // Or redirect, which admin layout already handles
   }
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: ProfileFormValues) => {
     if (!auth.currentUser) return;
     setIsSubmitting(true);
     try {
+      let newPhotoURL = user.photoURL;
+      if (photoPreview) {
+        // In a real app, you'd upload this to a storage service (like Firebase Storage)
+        // and get a downloadable URL. For this demo, we'll use a data URI.
+        // Be aware of data URI length limitations with Firebase Auth.
+        newPhotoURL = photoPreview;
+      }
+
       await updateProfile(auth.currentUser, {
         displayName: data.displayName,
+        photoURL: newPhotoURL,
       });
+
       toast({
         title: "Success",
         description: "Your profile has been updated.",
       });
-      // You might want to re-fetch user or trust the UI to update on next refresh
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      // A full refresh is a simple way to ensure the new avatar shows up everywhere
+      router.refresh();
+      
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -84,21 +113,28 @@ export default function ProfilePage() {
           <CardTitle>My Profile</CardTitle>
           <CardDescription>View and edit your personal information.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={user.photoURL || avatar?.imageUrl} />
-              <AvatarFallback>
-                <UserIcon className="h-10 w-10" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="text-2xl font-bold">{user.displayName || "No Name"}</h2>
-              <p className="text-muted-foreground">{user.email}</p>
+        <CardContent>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={photoPreview || user.photoURL || avatar?.imageUrl} alt="User avatar" />
+                  <AvatarFallback>
+                    <UserIcon className="h-12 w-12" />
+                  </AvatarFallback>
+                </Avatar>
+                <label htmlFor="photo-upload" className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors">
+                  <Camera className="h-4 w-4" />
+                  <input id="photo-upload" type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handlePhotoChange} />
+                </label>
+              </div>
             </div>
-          </div>
 
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={user.email || ''} readOnly disabled className="cursor-not-allowed bg-muted/50" />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
               <Input
