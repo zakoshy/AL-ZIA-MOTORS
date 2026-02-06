@@ -3,7 +3,7 @@
     {
       "id": "hero-nissan",
       "description": "A sleek Nissan GT-R on a city road.",
-      "imageUrl": "https://images.unsplash.com/photo-1617083999138-b6493c48975a?q=80&w=2070&auto=format&fit=crop",
+      "imageUrl": "https://images.unsplash.com/photo-1606567593299-873a152d7b53?q=80&w=2070&auto=format&fit=crop",
       "imageHint": "nissan gtr"
     },
     {
@@ -15,13 +15,13 @@
     {
       "id": "hero-suzuki",
       "description": "A compact and sporty Suzuki Swift.",
-      "imageUrl": "https://images.unsplash.com/photo-1628434200353-859fc8884a22?q=80&w=2070&auto=format&fit=crop",
+      "imageUrl": "https://images.unsplash.com/photo-1619508392948-4226a2e542fc?q=80&w=2071&auto=format&fit=crop",
       "imageHint": "suzuki swift"
     },
     {
       "id": "hero-audi",
       "description": "A futuristic Audi R8 sports car.",
-      "imageUrl": "https://images.unsplash.com/photo-1600722026769-07c870a44811?q=80&w=2070&auto=format&fit=crop",
+      "imageUrl": "https://images.unsplash.com/photo-1541348263662-e354936a23e8?q=80&w=2070&auto=format&fit=crop",
       "imageHint": "audi r8"
     },
     {
