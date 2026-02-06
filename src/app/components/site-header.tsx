@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -49,7 +48,10 @@ export function SiteHeader() {
         </div>
         
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          {/* Desktop Theme Toggle */}
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
           
           {/* Mobile Navigation */}
           <Sheet>
@@ -59,22 +61,30 @@ export function SiteHeader() {
                 <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px]">
-                <nav className="flex flex-col gap-6 text-lg font-medium mt-10">
-                   <Logo isLink={true} className="mb-4"/>
-                   {navItems.map((item) => (
-                     <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                            "flex items-center gap-4 px-2.5",
-                            pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                        )}
-                    >
-                        {item.label}
-                    </Link>
-                   ))}
-                </nav>
+            <SheetContent side="right" className="w-[300px] flex flex-col p-0">
+              <div className="p-6 border-b">
+                <Logo isLink={true} />
+              </div>
+              <nav className="flex-1 flex flex-col gap-4 text-lg font-medium p-6">
+                 {navItems.map((item) => (
+                   <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                          "flex items-center gap-4",
+                          pathname === item.href ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                      )}
+                  >
+                      {item.label}
+                  </Link>
+                 ))}
+              </nav>
+              <div className="p-6 border-t">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">Theme</p>
+                  <ThemeToggle />
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
