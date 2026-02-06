@@ -22,6 +22,7 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -114,6 +115,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
              <h1 className="font-headline text-2xl font-semibold">
                 {navItems.find(item => pathname.startsWith(item.href))?.label || "Admin"}
              </h1>
+             <div className="ml-auto">
+               <ThemeToggle />
+             </div>
           </header>
           <main className="flex-1 p-4 md:p-6">{children}</main>
         </SidebarInset>

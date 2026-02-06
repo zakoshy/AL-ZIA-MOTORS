@@ -18,9 +18,11 @@ import { useRouter } from "next/navigation";
 import { createVehicle, updateVehicle } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 import { getMakes } from "@/lib/data";
+import { Form, FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { Combobox } from "@/components/ui/combobox";
 
 const vehicleFormSchema = z.object({
-  make: z.string().min(2, "Make is required"),
+  make: z.string().min(1, "Make is required"),
   model: z.string().min(1, "Model is required"),
   year: z.coerce.number().int().min(1900, "Invalid year"),
   chassisNumber: z.string().min(5, "Chassis number is required."),
@@ -57,6 +59,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       status: "Available",
       inspectionStatus: "Pending",
       fuel: "Petrol",
+      make: "",
     },
   });
 
@@ -164,148 +167,232 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="grid gap-2">
-          <Label htmlFor="make">Make</Label>
-           <Select onValueChange={(v) => form.setValue('make', v)} defaultValue={form.getValues('make')}>
-            <SelectTrigger><SelectValue placeholder="Select a make" /></SelectTrigger>
-            <SelectContent>
-              {makes.map((make) => (
-                <SelectItem key={make} value={make}>{make}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {form.formState.errors.make && <p className="text-sm text-destructive">{form.formState.errors.make.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="model">Model</Label>
-          <Input id="model" {...form.register("model")} />
-           {form.formState.errors.model && <p className="text-sm text-destructive">{form.formState.errors.model.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="year">Year</Label>
-          <Input id="year" type="number" {...form.register("year")} />
-           {form.formState.errors.year && <p className="text-sm text-destructive">{form.formState.errors.year.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="chassisNumber">Chassis Number</Label>
-          <Input id="chassisNumber" {...form.register("chassisNumber")} />
-           {form.formState.errors.chassisNumber && <p className="text-sm text-destructive">{form.formState.errors.chassisNumber.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="price">Price (USD)</Label>
-          <Input id="price" type="number" {...form.register("price")} />
-           {form.formState.errors.price && <p className="text-sm text-destructive">{form.formState.errors.price.message}</p>}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="mileage">Mileage (km)</Label>
-          <Input id="mileage" type="number" {...form.register("mileage")} />
-           {form.formState.errors.mileage && <p className="text-sm text-destructive">{form.formState.errors.mileage.message}</p>}
-        </div>
-         <div className="grid gap-2">
-          <Label>Fuel Type</Label>
-          <Select onValueChange={(v) => form.setValue('fuel', v as any)} defaultValue={form.getValues('fuel')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Petrol">Petrol</SelectItem>
-              <SelectItem value="Diesel">Diesel</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label>Condition</Label>
-          <Select onValueChange={(v) => form.setValue('condition', v as any)} defaultValue={form.getValues('condition')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="New">New</SelectItem>
-              <SelectItem value="Used">Used</SelectItem>
-              <SelectItem value="Damaged">Damaged</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label>Availability Status</Label>
-          <Select onValueChange={(v) => form.setValue('status', v as any)} defaultValue={form.getValues('status')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Incoming">Incoming</SelectItem>
-              <SelectItem value="Available">Available</SelectItem>
-              <SelectItem value="Sold">Sold</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label>Inspection Status</Label>
-          <Select onValueChange={(v) => form.setValue('inspectionStatus', v as any)} defaultValue={form.getValues('inspectionStatus')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="Passed">Passed</SelectItem>
-              <SelectItem value="Failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Vehicle Images</CardTitle>
-          <CardDescription>Upload images for the vehicle. The first image will be the featured one.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-             <label
-                htmlFor="file-upload"
-                onDragEnter={() => setIsDragging(true)}
-                onDragLeave={() => setIsDragging(false)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                className={cn(
-                    "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors",
-                    isDragging && "bg-accent/10 border-accent"
-                )}
-            >
-              <UploadCloud className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-              <p className="text-xs text-muted-foreground">JPEG, PNG, WEBP</p>
-            </label>
-            <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" accept="image/jpeg,image/png,image/webp" />
-
-            {imagePreviews.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {imagePreviews.map((img) => (
-                  <div key={img.fileName} className="relative group aspect-video rounded-lg overflow-hidden border">
-                    <Image src={img.dataUri} alt={img.fileName} fill className="object-cover" />
-                    <div className="absolute top-1 right-1">
-                      <Button variant="destructive" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(img.fileName)}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {img.flagged ? (
-                      <div className="absolute inset-0 bg-destructive/80 flex flex-col items-center justify-center p-2 text-destructive-foreground text-center">
-                        <AlertCircle className="h-6 w-6" />
-                        <p className="text-xs font-semibold mt-1">{img.reason}</p>
-                      </div>
-                    ) : (
-                      <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <CheckCircle className="h-8 w-8 text-white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <FormField
+            control={form.control}
+            name="make"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Make</FormLabel>
+                <Combobox
+                  options={makes.map((make) => ({ value: make, label: make }))}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select a make"
+                  searchPlaceholder="Search makes..."
+                  emptyText="No make found."
+                />
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save Vehicle"}
-        </Button>
-      </div>
-    </form>
+          />
+          <FormField
+            control={form.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Model</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="chassisNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Chassis Number</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price (USD)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="mileage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mileage (km)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="fuel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fuel Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Petrol">Petrol</SelectItem>
+                    <SelectItem value="Diesel">Diesel</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="condition"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Condition</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="Used">Used</SelectItem>
+                    <SelectItem value="Damaged">Damaged</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Availability Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Incoming">Incoming</SelectItem>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Sold">Sold</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="inspectionStatus"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Inspection Status</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Passed">Passed</SelectItem>
+                    <SelectItem value="Failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Vehicle Images</CardTitle>
+            <CardDescription>Upload images for the vehicle. The first image will be the featured one.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <label
+                  htmlFor="file-upload"
+                  onDragEnter={() => setIsDragging(true)}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                  className={cn(
+                      "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors",
+                      isDragging && "bg-accent/10 border-accent"
+                  )}
+              >
+                <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+                <p className="text-xs text-muted-foreground">JPEG, PNG, WEBP</p>
+              </label>
+              <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" accept="image/jpeg,image/png,image/webp" />
+
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {imagePreviews.map((img) => (
+                    <div key={img.fileName} className="relative group aspect-video rounded-lg overflow-hidden border">
+                      <Image src={img.dataUri} alt={img.fileName} fill className="object-cover" />
+                      <div className="absolute top-1 right-1">
+                        <Button variant="destructive" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(img.fileName)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {img.flagged ? (
+                        <div className="absolute inset-0 bg-destructive/80 flex flex-col items-center justify-center p-2 text-destructive-foreground text-center">
+                          <AlertCircle className="h-6 w-6" />
+                          <p className="text-xs font-semibold mt-1">{img.reason}</p>
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <CheckCircle className="h-8 w-8 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Vehicle"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

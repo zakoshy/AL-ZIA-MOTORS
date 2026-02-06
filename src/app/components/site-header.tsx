@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/app/components/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -38,7 +39,7 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
-          
+          <ThemeToggle />
         </div>
       </div>
     </header>
