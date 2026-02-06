@@ -8,7 +8,8 @@
         "make": { "type": "string" },
         "model": { "type": "string" },
         "year": { "type": "number" },
-        "engine": { "type": "string" },
+        "chassisNumber": { "type": "string" },
+        "fuel": { "type": "string", "enum": ["Petrol", "Diesel"] },
         "mileage": { "type": "number" },
         "condition": { "type": "string", "enum": ["New", "Used", "Damaged"] },
         "price": { "type": "number" },
@@ -32,7 +33,7 @@
             }
         }
       },
-      "required": ["make", "model", "year", "price", "mileage", "status", "inspectionStatus"]
+      "required": ["make", "model", "year", "price", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel"]
     },
     "salesperson": {
       "title": "Salesperson",

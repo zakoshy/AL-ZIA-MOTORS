@@ -5,7 +5,7 @@ export type VehicleImage = {
 };
 
 export type Salesperson = {
-  id: string;
+  id:string;
   name: string;
   email: string;
   userId?: string;
@@ -16,7 +16,8 @@ export type Vehicle = {
   make: string;
   model: string;
   year: number;
-  engine: string;
+  chassisNumber: string;
+  fuel: 'Petrol' | 'Diesel';
   mileage: number;
   condition: 'New' | 'Used' | 'Damaged';
   images: VehicleImage[];

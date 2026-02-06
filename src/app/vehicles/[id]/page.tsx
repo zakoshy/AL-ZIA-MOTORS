@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, GaugeCircle, Wrench, ShieldCheck, Tag, Car, CircleDollarSign } from "lucide-react";
+import { Calendar, GaugeCircle, ShieldCheck, Tag, Car, CircleDollarSign, Fuel, Fingerprint } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
@@ -27,8 +27,9 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
 
   const vehicleDetails = [
     { icon: Car, label: "Make & Model", value: `${vehicle.make} ${vehicle.model}` },
+    { icon: Fingerprint, label: "Chassis No.", value: vehicle.chassisNumber },
     { icon: Calendar, label: "Year", value: vehicle.year },
-    { icon: Wrench, label: "Engine", value: vehicle.engine },
+    { icon: Fuel, label: "Fuel", value: vehicle.fuel },
     { icon: GaugeCircle, label: "Mileage", value: `${vehicle.mileage.toLocaleString()} km` },
     { icon: Tag, label: "Condition", value: vehicle.condition },
     { icon: ShieldCheck, label: "Inspection", value: vehicle.inspectionStatus },
@@ -82,7 +83,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                   <Icon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-foreground">{label}</p>
-                    <p className="text-muted-foreground">{value}</p>
+                    <p className="text-muted-foreground">{value.toString()}</p>
                   </div>
                 </div>
               ))}

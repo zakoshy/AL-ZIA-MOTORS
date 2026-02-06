@@ -1,10 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VehicleForm } from "@/app/admin/components/vehicle-form";
-import { getSalespeople } from "@/lib/data";
 
 export default function NewVehiclePage() {
-  const salespeople = getSalespeople();
-
   return (
     <Card>
       <CardHeader>
@@ -12,7 +9,7 @@ export default function NewVehiclePage() {
         <CardDescription>Fill out the form below to add a new car to the inventory.</CardDescription>
       </CardHeader>
       <CardContent>
-        <VehicleForm salespeople={salespeople} />
+        <VehicleForm />
       </CardContent>
     </Card>
   );

@@ -7,7 +7,8 @@ const vehicles: Vehicle[] = [
     make: "Nissan",
     model: "Skyline GT-R (R34)",
     year: 1999,
-    engine: "2.6L Twin-Turbo RB26DETT I6",
+    chassisNumber: "BCNR34-001234",
+    fuel: "Petrol",
     mileage: 68000,
     condition: "Used",
     images: [
@@ -23,7 +24,8 @@ const vehicles: Vehicle[] = [
     make: "Toyota",
     model: "Supra (A80)",
     year: 1998,
-    engine: "3.0L Twin-Turbo 2JZ-GTE I6",
+    chassisNumber: "JZA80-100567",
+    fuel: "Petrol",
     mileage: 82000,
     condition: "Used",
     images: [
@@ -39,7 +41,8 @@ const vehicles: Vehicle[] = [
     make: "Honda",
     model: "NSX",
     year: 1992,
-    engine: "3.0L V6 C30A",
+    chassisNumber: "NA1-1001122",
+    fuel: "Petrol",
     mileage: 55000,
     condition: "Used",
     images: [
@@ -55,7 +58,8 @@ const vehicles: Vehicle[] = [
     make: "Mazda",
     model: "RX-7 (FD)",
     year: 2001,
-    engine: "1.3L Twin-Turbo 13B-REW Rotary",
+    chassisNumber: "FD3S-500345",
+    fuel: "Petrol",
     mileage: 75000,
     condition: "Used",
     images: [
@@ -71,7 +75,8 @@ const vehicles: Vehicle[] = [
     make: "Subaru",
     model: "Impreza WRX STi (GC8)",
     year: 2000,
-    engine: "2.0L Turbo EJ207 H4",
+    chassisNumber: "GC8-098765",
+    fuel: "Petrol",
     mileage: 110000,
     condition: "Used",
     images: [
@@ -89,7 +94,8 @@ const vehicles: Vehicle[] = [
     make: "Mitsubishi",
     model: "Lancer Evolution VI",
     year: 1999,
-    engine: "2.0L Turbo 4G63T I4",
+    chassisNumber: "CP9A-020123",
+    fuel: "Petrol",
     mileage: 95000,
     condition: "Used",
     images: [
@@ -105,7 +111,8 @@ const vehicles: Vehicle[] = [
     make: "Suzuki",
     model: "Jimny",
     year: 2023,
-    engine: "1.5L K15B I4",
+    chassisNumber: "JB74-300456",
+    fuel: "Petrol",
     mileage: 5000,
     condition: "New",
     images: [

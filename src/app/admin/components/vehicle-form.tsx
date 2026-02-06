@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Vehicle, Salesperson } from "@/lib/types";
+import type { Vehicle } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { optimizeImageAndFlag } from "@/ai/flows/image-optimization-and-flagging";
 import Image from "next/image";
@@ -24,13 +23,13 @@ const vehicleFormSchema = z.object({
   make: z.string().min(2, "Make is required"),
   model: z.string().min(1, "Model is required"),
   year: z.coerce.number().int().min(1900, "Invalid year"),
-  engine: z.string().min(3, "Engine details are required"),
+  chassisNumber: z.string().min(5, "Chassis number is required."),
+  fuel: z.enum(["Petrol", "Diesel"]),
   mileage: z.coerce.number().nonnegative("Mileage must be a positive number"),
   condition: z.enum(["New", "Used", "Damaged"]),
   price: z.coerce.number().positive("Price must be a positive number"),
   status: z.enum(["Incoming", "Available", "Sold"]),
   inspectionStatus: z.enum(["Pending", "Passed", "Failed"]),
-  salespersonId: z.string().optional(),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
@@ -42,7 +41,7 @@ type ImagePreview = {
   reason?: string;
 };
 
-export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, salespeople: Salesperson[] }) {
+export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const { toast } = useToast();
   const router = useRouter();
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
@@ -57,6 +56,7 @@ export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, sales
       condition: "Used",
       status: "Available",
       inspectionStatus: "Pending",
+      fuel: "Petrol",
     },
   });
 
@@ -189,6 +189,11 @@ export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, sales
            {form.formState.errors.year && <p className="text-sm text-destructive">{form.formState.errors.year.message}</p>}
         </div>
         <div className="grid gap-2">
+          <Label htmlFor="chassisNumber">Chassis Number</Label>
+          <Input id="chassisNumber" {...form.register("chassisNumber")} />
+           {form.formState.errors.chassisNumber && <p className="text-sm text-destructive">{form.formState.errors.chassisNumber.message}</p>}
+        </div>
+        <div className="grid gap-2">
           <Label htmlFor="price">Price (USD)</Label>
           <Input id="price" type="number" {...form.register("price")} />
            {form.formState.errors.price && <p className="text-sm text-destructive">{form.formState.errors.price.message}</p>}
@@ -198,10 +203,15 @@ export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, sales
           <Input id="mileage" type="number" {...form.register("mileage")} />
            {form.formState.errors.mileage && <p className="text-sm text-destructive">{form.formState.errors.mileage.message}</p>}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="engine">Engine</Label>
-          <Input id="engine" {...form.register("engine")} />
-           {form.formState.errors.engine && <p className="text-sm text-destructive">{form.formState.errors.engine.message}</p>}
+         <div className="grid gap-2">
+          <Label>Fuel Type</Label>
+          <Select onValueChange={(v) => form.setValue('fuel', v as any)} defaultValue={form.getValues('fuel')}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Petrol">Petrol</SelectItem>
+              <SelectItem value="Diesel">Diesel</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="grid gap-2">
           <Label>Condition</Label>
@@ -233,18 +243,6 @@ export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, sales
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Passed">Passed</SelectItem>
               <SelectItem value="Failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-         <div className="grid gap-2">
-          <Label>Assign Salesperson</Label>
-          <Select onValueChange={(v) => form.setValue('salespersonId', v)} defaultValue={form.getValues('salespersonId')}>
-            <SelectTrigger><SelectValue placeholder="Select a salesperson" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unassigned">None</SelectItem>
-              {salespeople.map((sp) => (
-                <SelectItem key={sp.id} value={sp.id}>{sp.name}</SelectItem>
-              ))}
             </SelectContent>
           </Select>
         </div>
