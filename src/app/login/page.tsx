@@ -36,8 +36,8 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-      const message = "Firebase is not configured. Please add your project credentials to src/firebase/config.ts";
+    if (!firebaseConfig.apiKey) {
+      const message = "Firebase is not configured. Please check your environment variables.";
       setError(message);
       toast({
         title: "Configuration Error",
