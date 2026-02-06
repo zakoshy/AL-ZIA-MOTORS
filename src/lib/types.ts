@@ -4,6 +4,13 @@ export type VehicleImage = {
   isFeature: boolean;
 };
 
+export type Salesperson = {
+  id: string;
+  name: string;
+  email: string;
+  userId?: string;
+};
+
 export type Vehicle = {
   id: string;
   make: string;
@@ -20,4 +27,5 @@ export type Vehicle = {
   saleDate?: string;
   buyerDetails?: string;
   finalPrice?: number;
+  salespersonId?: string;
 };

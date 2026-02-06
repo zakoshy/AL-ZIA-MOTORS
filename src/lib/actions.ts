@@ -13,6 +13,7 @@ const vehicleSchema = z.object({
   condition: z.enum(["New", "Used", "Damaged"]),
   status: z.enum(["Incoming", "Available", "Sold"]),
   inspectionStatus: z.enum(["Pending", "Passed", "Failed"]),
+  salespersonId: z.string().optional(),
 });
 
 export async function createVehicle(formData: FormData) {
@@ -62,4 +63,34 @@ export async function deleteVehicle(id: string) {
   revalidatePath("/admin/vehicles");
   
   return { message: "Vehicle deleted." };
+}
+
+
+const salespersonSchema = z.object({
+    name: z.string().min(2, "Name is required"),
+    email: z.string().email("Invalid email address"),
+});
+
+export async function createSalesperson(formData: FormData) {
+    const validatedFields = salespersonSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    // In a real app, this would create a user in Firebase Auth and a document in Firestore.
+    // For now, we just log it.
+    console.log("Creating salesperson profile:", validatedFields.data);
+    revalidatePath("/admin/salespeople");
+    return { message: "Salesperson profile added." };
+}
+
+export async function deleteSalesperson(id: string) {
+    // In a real app, this would delete the Firestore document.
+    // Deleting the Firebase Auth user requires the Admin SDK and a secure backend environment.
+    console.log(`Deleting salesperson profile ${id}`);
+    revalidatePath("/admin/salespeople");
+    return { message: "Salesperson profile deleted." };
 }

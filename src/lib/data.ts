@@ -1,4 +1,4 @@
-import type { Vehicle } from "@/lib/types";
+import type { Vehicle, Salesperson } from "@/lib/types";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const vehicles: Vehicle[] = [
@@ -117,10 +117,36 @@ const vehicles: Vehicle[] = [
   },
 ];
 
+const salespeople: Salesperson[] = [
+    { id: "sp-1", name: "Alice Johnson", email: "alice@alziatrading.com" },
+    { id: "sp-2", name: "Bob Williams", email: "bob@alziatrading.com" },
+];
+
+const makes = [
+  "Toyota",
+  "Nissan",
+  "Honda",
+  "Mazda",
+  "Subaru",
+  "Mitsubishi",
+  "Suzuki",
+  "Lexus",
+  "Acura",
+  "Infiniti",
+];
+
 export function getVehicles() {
   return vehicles;
 }
 
 export function getVehicleById(id: string) {
   return vehicles.find(v => v.id === id);
+}
+
+export function getSalespeople() {
+    return salespeople;
+}
+
+export function getMakes() {
+    return makes;
 }

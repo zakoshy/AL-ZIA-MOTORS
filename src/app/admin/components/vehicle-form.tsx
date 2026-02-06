@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Vehicle } from "@/lib/types";
+import type { Vehicle, Salesperson } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { createVehicle, updateVehicle } from "@/lib/actions";
 import { cn } from "@/lib/utils";
+import { getMakes } from "@/lib/data";
 
 const vehicleFormSchema = z.object({
   make: z.string().min(2, "Make is required"),
@@ -29,6 +30,7 @@ const vehicleFormSchema = z.object({
   price: z.coerce.number().positive("Price must be a positive number"),
   status: z.enum(["Incoming", "Available", "Sold"]),
   inspectionStatus: z.enum(["Pending", "Passed", "Failed"]),
+  salespersonId: z.string().optional(),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
@@ -40,12 +42,14 @@ type ImagePreview = {
   reason?: string;
 };
 
-export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
+export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, salespeople: Salesperson[] }) {
   const { toast } = useToast();
   const router = useRouter();
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  const makes = getMakes();
 
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
@@ -129,7 +133,9 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     setIsSubmitting(true);
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
+      if (value) {
+        formData.append(key, String(value));
+      }
     });
 
     try {
@@ -162,7 +168,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="grid gap-2">
           <Label htmlFor="make">Make</Label>
-          <Input id="make" {...form.register("make")} />
+           <Select onValueChange={(v) => form.setValue('make', v)} defaultValue={form.getValues('make')}>
+            <SelectTrigger><SelectValue placeholder="Select a make" /></SelectTrigger>
+            <SelectContent>
+              {makes.map((make) => (
+                <SelectItem key={make} value={make}>{make}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {form.formState.errors.make && <p className="text-sm text-destructive">{form.formState.errors.make.message}</p>}
         </div>
         <div className="grid gap-2">
@@ -223,6 +236,18 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             </SelectContent>
           </Select>
         </div>
+         <div className="grid gap-2">
+          <Label>Assign Salesperson</Label>
+          <Select onValueChange={(v) => form.setValue('salespersonId', v)} defaultValue={form.getValues('salespersonId')}>
+            <SelectTrigger><SelectValue placeholder="Select a salesperson" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None</SelectItem>
+              {salespeople.map((sp) => (
+                <SelectItem key={sp.id} value={sp.id}>{sp.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <Card>
@@ -240,13 +265,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 onDrop={handleDrop}
                 className={cn(
                     "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors",
-                    isDragging && "bg-primary/10 border-primary"
+                    isDragging && "bg-accent/10 border-accent"
                 )}
             >
               <UploadCloud className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, WEBP</p>
             </label>
-            <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" />
+            <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" accept="image/jpeg,image/png,image/webp" />
 
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

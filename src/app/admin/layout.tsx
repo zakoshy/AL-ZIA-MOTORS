@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Logo } from "@/app/components/logo";
-import { LayoutDashboard, Car, History, User, LogOut, Loader2 } from "lucide-react";
+import { LayoutDashboard, Car, History, User, LogOut, Loader2, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import Link from 'next/link';
@@ -31,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const avatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/login');
   };
@@ -57,6 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/admin/vehicles", icon: Car, label: "Vehicles" },
     { href: "/admin/sales-history", icon: History, label: "Sales History" },
+    { href: "/admin/salespeople", icon: Users, label: "Salespeople" },
   ];
 
   return (
