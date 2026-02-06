@@ -241,7 +241,7 @@ export function VehicleForm({ vehicle, salespeople }: { vehicle?: Vehicle, sales
           <Select onValueChange={(v) => form.setValue('salespersonId', v)} defaultValue={form.getValues('salespersonId')}>
             <SelectTrigger><SelectValue placeholder="Select a salesperson" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="unassigned">None</SelectItem>
               {salespeople.map((sp) => (
                 <SelectItem key={sp.id} value={sp.id}>{sp.name}</SelectItem>
               ))}
