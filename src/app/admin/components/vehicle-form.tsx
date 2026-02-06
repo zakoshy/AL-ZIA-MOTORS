@@ -56,12 +56,17 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
     defaultValues: vehicle || {
+      make: "",
+      model: "",
+      year: new Date().getFullYear(),
+      chassisNumber: "",
+      fuel: "Petrol",
+      mileage: 0,
       condition: "Used",
+      price: 0,
+      currency: "USD",
       status: "Available",
       inspectionStatus: "Pending",
-      fuel: "Petrol",
-      make: "",
-      currency: "USD",
     },
   });
 
