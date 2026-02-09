@@ -38,13 +38,8 @@ export function FirebaseClientProvider({ children }: { children: React.ReactNode
   // useMemo ensures initialization happens only once.
   const services = useMemo(initializeFirebase, []);
 
-  // If Firebase isn't initialized (e.g., due to missing env vars),
-  // render the children without the provider. This prevents a blank screen.
-  // Components that require Firebase will then throw a more specific error.
-  if (!services) {
-    return <>{children}</>;
-  }
-
+  // Always render the provider, but the value can be null if initialization fails.
+  // Hooks consuming the context will need to handle the null case.
   return (
     <FirebaseProvider value={services}>
       {children}

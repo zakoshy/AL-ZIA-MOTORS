@@ -8,6 +8,11 @@ export function useUser() {
   const [user, setUser] = useState<User | null | undefined>(undefined); // undefined for loading state
 
   useEffect(() => {
+    if (!auth) {
+      setUser(null);
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });

@@ -18,25 +18,21 @@ export function FirebaseProvider({
   value,
 }: {
   children: React.ReactNode;
-  value: FirebaseContextValue;
+  value: FirebaseContextValue | null;
 }) {
   const memoizedValue = useMemo(() => value, [value]);
   return (
     <FirebaseContext.Provider value={memoizedValue}>
       {children}
-      <FirebaseErrorListener />
+      {value && <FirebaseErrorListener />}
     </FirebaseContext.Provider>
   );
 }
 
 export const useFirebase = () => {
-  const context = useContext(FirebaseContext);
-  if (!context) {
-    throw new Error('useFirebase must be used within a FirebaseProvider.');
-  }
-  return context;
+  return useContext(FirebaseContext);
 };
 
-export const useFirebaseApp = () => useFirebase().firebaseApp;
-export const useAuth = () => useFirebase().auth;
-export const useFirestore = () => useFirebase().firestore;
+export const useFirebaseApp = () => useFirebase()?.firebaseApp;
+export const useAuth = () => useFirebase()?.auth;
+export const useFirestore = () => useFirebase()?.firestore;
