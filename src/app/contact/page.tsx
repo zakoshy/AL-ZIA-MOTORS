@@ -11,7 +11,7 @@ import Link from 'next/link';
 
 export default function ContactPage() {
   const googleMapsUrl =
-    'https://www.google.com/maps/dir/?api=1&destination=-4.0601938,39.6617007';
+    'https://www.google.com/maps/dir/?api=1&destination=-4.045591,39.683416';
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -36,7 +36,7 @@ export default function ContactPage() {
               <div>
                 <h3 className="font-semibold">Our Location</h3>
                 <p className="text-muted-foreground">
-                  Moi Avenue Road, Opposite Airtel Customer Care, Mombasa, Kenya
+                  Autozone Motors, Links Rd, Mombasa, Kenya
                 </p>
               </div>
             </div>
@@ -92,14 +92,14 @@ export default function ContactPage() {
           <CardContent>
             <div className="aspect-video w-full rounded-lg overflow-hidden border">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.835439501582!2d39.6617006758455!3d-4.060193845424581!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x18401319401730d1%3A0x8e8a798482d1c37b!2sAirtel%20Express!5e0!3m2!1sen!2ske!4v1716473121193!5m2!1sen!2ske"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.882453835698!2d39.6808410758454!3d-4.045585645511046!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1840129202598c97%3A0x46821361a8c38725!2sAutozone%20Motors!5e0!3m2!1sen!2ske!4v1721308365313!5m2!1sen!2ske"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen={true}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="AL-ZIA TRADING CO. LTD Location"
+                title="Autozone Motors Location"
               ></iframe>
             </div>
           </CardContent>
