@@ -34,7 +34,12 @@ export default function ProfilePage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const avatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
-  const form = useForm<ProfileFormValues>();
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      displayName: "",
+    },
+  });
 
   useEffect(() => {
     if (user) {
