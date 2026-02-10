@@ -13,9 +13,11 @@ import { getMakes } from '@/lib/data';
 
 export default function VehiclesPage() {
   const firestore = useFirestore();
-  const { data: allVehicles, loading } = useCollection<Vehicle>(
-    firestore ? query(collection(firestore, "vehicles")) : null
-  );
+  const vehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "vehicles"));
+  }, [firestore]);
+  const { data: allVehicles, loading } = useCollection<Vehicle>(vehiclesQuery);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMake, setSelectedMake] = useState('all');

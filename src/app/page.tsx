@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { VehicleCard } from "@/app/components/vehicle-card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -12,15 +13,15 @@ import type { Vehicle } from "@/lib/types";
 
 export default function Home() {
   const firestore = useFirestore();
-  const { data: featuredVehicles, loading } = useCollection<Vehicle>(
-    firestore 
-      ? query(
-          collection(firestore, "vehicles"), 
-          where('status', '==', 'Available'), 
-          limit(3)
-        )
-      : null
-  );
+  const featuredVehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(
+      collection(firestore, "vehicles"), 
+      where('status', '==', 'Available'), 
+      limit(3)
+    );
+  }, [firestore]);
+  const { data: featuredVehicles, loading } = useCollection<Vehicle>(featuredVehiclesQuery);
   
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-mercedes');
 

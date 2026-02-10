@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { SalespeopleClient } from "./components/salespeople-client";
 import { useCollection, useFirestore } from "@/firebase";
 import { collection } from "firebase/firestore";
@@ -8,9 +9,11 @@ import { Loader2 } from "lucide-react";
 
 export default function SalespeoplePage() {
   const firestore = useFirestore();
-  const { data: salespeople, loading } = useCollection<Salesperson>(
-    firestore ? collection(firestore, "salespeople") : null
-  );
+  const salespeopleQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, "salespeople");
+  }, [firestore]);
+  const { data: salespeople, loading } = useCollection<Salesperson>(salespeopleQuery);
 
   if (loading) {
     return (

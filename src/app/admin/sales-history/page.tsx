@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { SalesHistoryTable } from "@/app/admin/components/sales-history-table";
 import { useCollection, useFirestore } from "@/firebase";
 import type { Vehicle } from "@/lib/types";
@@ -8,9 +9,11 @@ import { Loader2 } from "lucide-react";
 
 export default function SalesHistoryPage() {
   const firestore = useFirestore();
-  const { data: soldVehicles, loading } = useCollection<Vehicle>(
-    firestore ? query(collection(firestore, "vehicles"), where("status", "==", "Sold")) : null
-  );
+  const soldVehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "vehicles"), where("status", "==", "Sold"));
+  }, [firestore]);
+  const { data: soldVehicles, loading } = useCollection<Vehicle>(soldVehiclesQuery);
 
   return (
      <div className="grid flex-1 items-start gap-4">

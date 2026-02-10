@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useMemo } from 'react';
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,10 @@ import type { Vehicle } from "@/lib/types";
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
-  const vehicleRef = firestore ? doc(firestore, "vehicles", params.id) : null;
+  const vehicleRef = useMemo(() => {
+    if (!firestore) return null;
+    return doc(firestore, "vehicles", params.id);
+  }, [firestore, params.id]);
   const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
 
   if (loading) {

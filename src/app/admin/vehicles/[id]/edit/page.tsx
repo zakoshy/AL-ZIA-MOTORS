@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VehicleForm } from "@/app/admin/components/vehicle-form";
 import { notFound } from "next/navigation";
@@ -10,7 +11,10 @@ import { Loader2 } from "lucide-react";
 
 export default function EditVehiclePage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
-  const vehicleRef = firestore ? doc(firestore, "vehicles", params.id) : null;
+  const vehicleRef = useMemo(() => {
+    if (!firestore) return null;
+    return doc(firestore, "vehicles", params.id);
+  }, [firestore, params.id]);
   const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
 
   if (loading) {

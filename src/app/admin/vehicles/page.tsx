@@ -12,9 +12,11 @@ import { collection, query } from "firebase/firestore";
 
 export default function AdminVehiclesPage() {
   const firestore = useFirestore();
-  const { data: vehicles, loading } = useCollection<Vehicle>(
-    firestore ? query(collection(firestore, 'vehicles')) : null
-  );
+  const vehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'vehicles'));
+  }, [firestore]);
+  const { data: vehicles, loading } = useCollection<Vehicle>(vehiclesQuery);
 
   const { allVehicles, availableVehicles, incomingVehicles, soldVehicles } = useMemo(() => {
     const all = vehicles || [];

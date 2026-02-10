@@ -1,18 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
   onSnapshot,
-  query,
-  collection,
-  where,
-  orderBy,
-  limit,
-  startAfter,
-  endBefore,
-  limitToLast,
   type Query,
-  type DocumentData,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -23,18 +14,6 @@ export function useCollection<T>(q?: Query | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const firestore = useFirestore();
-  const queryRef = useRef(q);
-
-  useEffect(() => {
-    // Prevent re-running the effect if the query object itself changes
-    // but its path and constraints are the same. A better solution
-    // is to memoize the query creator in the component.
-    if (q?.path === queryRef.current?.path && q?._query?.isEqual(queryRef.current._query)) {
-      return;
-    }
-    queryRef.current = q;
-  }, [q]);
-
 
   useEffect(() => {
     if (!firestore || !q) {
@@ -57,8 +36,10 @@ export function useCollection<T>(q?: Query | null) {
       },
       (err) => {
         console.error("useCollection error:", err);
+        // Path is not public on a query, this is a best-effort for debugging
+        const path = (q as any)._query?.path?.toString() ?? 'unknown path';
         const permissionError = new FirestorePermissionError({
-          path: (q as any).path, // Internal property, but useful
+          path: path,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -68,7 +49,7 @@ export function useCollection<T>(q?: Query | null) {
     );
 
     return () => unsubscribe();
-  }, [firestore, queryRef.current]);
+  }, [firestore, q]);
 
   return { data, loading, error };
 }

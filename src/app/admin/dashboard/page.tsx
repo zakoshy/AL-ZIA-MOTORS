@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -36,9 +37,11 @@ const chartConfig = {
 
 export default function DashboardPage() {
   const firestore = useFirestore();
-  const { data: vehicles } = useCollection<Vehicle>(
-    firestore ? query(collection(firestore, "vehicles")) : null
-  );
+  const vehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, "vehicles"));
+  }, [firestore]);
+  const { data: vehicles } = useCollection<Vehicle>(vehiclesQuery);
 
   const totalVehicles = vehicles?.length ?? 0;
   const availableVehicles = vehicles?.filter(v => v.status === "Available").length ?? 0;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { onSnapshot, type DocumentReference } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -11,14 +11,6 @@ export function useDoc<T>(ref?: DocumentReference | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const firestore = useFirestore();
-  const refRef = useRef(ref);
-
-   useEffect(() => {
-    if (ref?.path === refRef.current?.path) {
-      return;
-    }
-    refRef.current = ref;
-  }, [ref]);
 
   useEffect(() => {
     if (!firestore || !ref) {
@@ -52,7 +44,7 @@ export function useDoc<T>(ref?: DocumentReference | null) {
     );
 
     return () => unsubscribe();
-  }, [firestore, refRef.current]);
+  }, [firestore, ref]);
 
   return { data, loading, error };
 }
