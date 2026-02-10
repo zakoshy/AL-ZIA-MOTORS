@@ -2,10 +2,9 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
-import { SiteHeader } from '@/app/components/site-header';
-import { SiteFooter } from '@/app/components/site-footer';
 import { FirebaseClientProvider } from '@/firebase';
 import { ThemeProvider } from '@/components/theme-provider';
+import { PageLayout } from './components/page-layout';
 
 export const metadata: Metadata = {
   title: 'AL-ZIA TRADING CO.LTD',
@@ -32,11 +31,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <SiteHeader />
-              <main className="flex-1">{children}</main>
-              <SiteFooter />
-            </div>
+            <PageLayout>
+              {children}
+            </PageLayout>
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>
