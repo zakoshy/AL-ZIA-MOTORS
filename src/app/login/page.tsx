@@ -77,7 +77,7 @@ export default function LoginPage() {
     if (!auth) {
       toast({
         title: 'Firebase Not Configured',
-        description: 'Please add your Firebase credentials to the .env file.',
+        description: 'Firebase is not configured. Please ensure your environment variables are set correctly.',
         variant: 'destructive',
       });
       return;
@@ -117,7 +117,7 @@ export default function LoginPage() {
     if (!auth) {
       toast({
         title: 'Firebase Not Configured',
-        description: 'Google sign-in is not available.',
+        description: 'Firebase is not configured. Please ensure your environment variables are set correctly.',
         variant: 'destructive',
       });
       return;
