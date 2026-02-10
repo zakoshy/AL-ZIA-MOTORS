@@ -116,8 +116,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset className="bg-secondary/50">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-2">
+        <SidebarInset className="bg-secondary/50 flex flex-col h-screen">
+          <header className="flex-shrink-0 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
              <SidebarTrigger className="md:hidden" />
              <h1 className="font-headline text-2xl font-semibold">
                 {navItems.find(item => pathname.startsWith(item.href))?.label || "Admin"}
@@ -126,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                <ThemeToggle />
              </div>
           </header>
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <main className="flex-1 p-4 md:p-6 overflow-y-auto">{children}</main>
         </SidebarInset>
       </div>
     </SidebarProvider>
