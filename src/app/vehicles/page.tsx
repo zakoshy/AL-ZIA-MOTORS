@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { VehicleCard } from '@/app/components/vehicle-card';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,26 +13,19 @@ import {
 import { Loader2, Search } from 'lucide-react';
 import type { Vehicle, VehicleType } from '@/lib/types';
 import { Combobox } from '@/components/ui/combobox';
-import { getMakes, getVehicles } from '@/lib/data';
+import { getMakes } from '@/lib/makes';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, query, where, DocumentData } from 'firebase/firestore';
+import { useDebounce } from 'use-debounce';
 
 export default function VehiclesPage() {
-  const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
   const [selectedMake, setSelectedMake] = useState('all');
   const [selectedFuel, setSelectedFuel] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
-
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const vehicles = await getVehicles();
-      setAllVehicles(vehicles);
-      setLoading(false);
-    }
-    loadData();
-  }, []);
 
   const makes = ['all', ...getMakes()];
   const fuelTypes = ['all', 'Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG'];
@@ -50,24 +43,41 @@ export default function VehiclesPage() {
     'Van',
   ];
 
+  const vehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    
+    const q = query(
+      collection(firestore, 'vehicles'),
+      where('status', '==', 'Available')
+    );
+    
+    const constraints: DocumentData[] = [];
+    if (selectedMake !== 'all') {
+      constraints.push(where('make', '==', selectedMake));
+    }
+    if (selectedFuel !== 'all') {
+      constraints.push(where('fuel', '==', selectedFuel));
+    }
+    if (selectedType !== 'all') {
+      constraints.push(where('vehicleType', '==', selectedType));
+    }
+
+    return query(q, ...constraints);
+
+  }, [firestore, selectedMake, selectedFuel, selectedType]);
+
+  const { data: allVehicles, loading } = useCollection<Vehicle>(vehiclesQuery);
+
   const filteredVehicles = useMemo(() => {
-    return allVehicles
-      .filter((vehicle) => vehicle.status === 'Available')
-      .filter(
-        (vehicle) => selectedMake === 'all' || vehicle.make === selectedMake
-      )
-      .filter(
-        (vehicle) => selectedFuel === 'all' || vehicle.fuel === selectedFuel
-      )
-      .filter(
-        (vehicle) => selectedType === 'all' || vehicle.vehicleType === selectedType
-      )
-      .filter((vehicle) =>
-        `${vehicle.make} ${vehicle.model} ${vehicle.year}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      );
-  }, [allVehicles, searchTerm, selectedMake, selectedFuel, selectedType]);
+    if (!allVehicles) return [];
+    if (!debouncedSearchTerm) return allVehicles;
+    return allVehicles.filter((vehicle) =>
+      `${vehicle.make} ${vehicle.model} ${vehicle.year}`
+        .toLowerCase()
+        .includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [allVehicles, debouncedSearchTerm]);
+
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">

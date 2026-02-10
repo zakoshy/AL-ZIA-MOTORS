@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -12,21 +12,20 @@ import { VehicleForm } from '@/app/admin/components/vehicle-form';
 import { notFound } from 'next/navigation';
 import type { Vehicle } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { getVehicleById } from '@/lib/data';
+import { useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function EditVehiclePage({ params }: { params: { id: string } }) {
-  const [vehicle, setVehicle] = useState<Vehicle | null | undefined>(undefined);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    async function loadData() {
-      const v = await getVehicleById(params.id);
-      setVehicle(v);
-    }
-    loadData();
-  }, [params.id]);
+  const vehicleRef = useMemo(() => {
+    if (!firestore || !params.id) return null;
+    return doc(firestore, 'vehicles', params.id);
+  }, [firestore, params.id]);
 
+  const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
 
-  if (vehicle === undefined) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
         <Loader2 className="h-8 w-8 animate-spin" />

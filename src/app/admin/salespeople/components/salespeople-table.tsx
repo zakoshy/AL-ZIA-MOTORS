@@ -31,6 +31,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useFirestore } from '@/firebase';
+import { deleteSalesperson } from '@/lib/mutations';
 
 export function SalespeopleTable({
   salespeople,
@@ -42,6 +44,7 @@ export function SalespeopleTable({
     useState<Salesperson | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const firestore = useFirestore();
 
   const handleDeleteClick = (salesperson: Salesperson) => {
     setSelectedSalesperson(salesperson);
@@ -49,14 +52,27 @@ export function SalespeopleTable({
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedSalesperson) return;
-    toast({
-      title: 'Demo Mode',
-      description: 'Salesperson deletion is disabled for this demonstration.',
-    });
-    router.refresh();
-    setIsDeleteDialogOpen(false);
-    setSelectedSalesperson(null);
+    if (!selectedSalesperson || !firestore) {
+        toast({ variant: "destructive", title: "An error occurred." });
+        return;
+    };
+    try {
+        await deleteSalesperson(firestore, selectedSalesperson.id);
+        toast({
+          title: 'Salesperson Removed',
+          description: `${selectedSalesperson.name} has been removed.`,
+        });
+        router.refresh();
+    } catch(error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message || "Could not remove salesperson.",
+        });
+    } finally {
+        setIsDeleteDialogOpen(false);
+        setSelectedSalesperson(null);
+    }
   };
 
   if (salespeople.length === 0) {

@@ -2,27 +2,30 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { VehicleCard } from '@/app/components/vehicle-card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import type { Vehicle } from '@/lib/types';
-import { getVehicles } from '@/lib/data';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, query, where, limit } from 'firebase/firestore';
 
 export default function Home() {
-  const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const vehicles = await getVehicles({ status: 'Available', limit: 3 });
-      setFeaturedVehicles(vehicles);
-      setLoading(false);
-    }
-    loadData();
-  }, []);
+  const featuredVehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(
+      collection(firestore, 'vehicles'),
+      where('status', '==', 'Available'),
+      limit(3)
+    );
+  }, [firestore]);
+
+  const { data: featuredVehicles, loading } = useCollection<Vehicle>(
+    featuredVehiclesQuery
+  );
 
   const heroImage = PlaceHolderImages.find((p) => p.id === 'hero-mercedes');
 
@@ -73,11 +76,15 @@ export default function Home() {
               <div className="flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
-            ) : (
+            ) : featuredVehicles && featuredVehicles.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {featuredVehicles?.map((vehicle) => (
+                {featuredVehicles.map((vehicle) => (
                   <VehicleCard key={vehicle.id} vehicle={vehicle} />
                 ))}
+              </div>
+            ) : (
+               <div className="text-center py-10">
+                  <p className="text-muted-foreground">No featured vehicles available at the moment.</p>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -14,18 +14,18 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import { Car, DollarSign, PackageCheck, PackageOpen } from 'lucide-react';
+import { Car, DollarSign, PackageCheck, PackageOpen, Loader2 } from 'lucide-react';
 import type { Vehicle } from '@/lib/types';
-import { getVehicles } from '@/lib/data';
-import { Loader2 } from 'lucide-react';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 const chartData = [
-  { month: 'January', sales: 186 },
-  { month: 'February', sales: 305 },
-  { month: 'March', sales: 237 },
-  { month: 'April', sales: 273 },
-  { month: 'May', sales: 209 },
-  { month: 'June', sales: 214 },
+  { month: 'January', sales: 0 },
+  { month: 'February', sales: 0 },
+  { month: 'March', sales: 0 },
+  { month: 'April', sales: 0 },
+  { month: 'May', sales: 0 },
+  { month: 'June', sales: 0 },
 ];
 
 const chartConfig = {
@@ -36,29 +36,38 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const data = await getVehicles();
-      setVehicles(data);
-      setLoading(false);
+  const vehiclesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'vehicles'));
+  }, [firestore]);
+  
+  const { data: vehicles, loading } = useCollection<Vehicle>(vehiclesQuery);
+
+  const {
+    totalRevenue,
+    availableVehicles,
+    soldVehicles,
+    incomingVehicles,
+  } = useMemo(() => {
+    if (!vehicles) {
+      return {
+        totalRevenue: 0,
+        availableVehicles: 0,
+        soldVehicles: 0,
+        incomingVehicles: 0,
+      };
     }
-    loadData();
-  }, []);
+    const sold = vehicles.filter((v) => v.status === 'Sold' && v.finalPrice);
+    return {
+      totalRevenue: sold.reduce((acc, v) => acc + (v.finalPrice || 0), 0),
+      availableVehicles: vehicles.filter((v) => v.status === 'Available').length,
+      soldVehicles: sold.length,
+      incomingVehicles: vehicles.filter((v) => v.status === 'Incoming').length,
+    };
+  }, [vehicles]);
 
-  const totalVehicles = vehicles?.length ?? 0;
-  const availableVehicles =
-    vehicles?.filter((v) => v.status === 'Available').length ?? 0;
-  const soldVehicles = vehicles?.filter((v) => v.status === 'Sold').length ?? 0;
-  const incomingVehicles =
-    vehicles?.filter((v) => v.status === 'Incoming').length ?? 0;
-  const totalRevenue =
-    vehicles
-      ?.filter((v) => v.status === 'Sold' && v.finalPrice)
-      .reduce((acc, v) => acc + (v.finalPrice || 0), 0) ?? 0;
 
   const stats = [
     {
@@ -106,7 +115,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle>Sales Overview</CardTitle>
           <CardDescription>
-            A summary of vehicle sales over the past 6 months.
+            A summary of vehicle sales over the past 6 months (demo data).
           </CardDescription>
         </CardHeader>
         <CardContent>

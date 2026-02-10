@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,20 +30,22 @@ import {
 } from '@/components/ui/carousel';
 import { formatCurrency } from '@/lib/utils';
 import type { Vehicle } from '@/lib/types';
-import { getVehicleById } from '@/lib/data';
+import { useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
+
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const [vehicle, setVehicle] = useState<Vehicle | null | undefined>(undefined);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    async function loadData() {
-      const v = await getVehicleById(params.id);
-      setVehicle(v);
-    }
-    loadData();
-  }, [params.id]);
+  const vehicleRef = useMemo(() => {
+    if (!firestore || !params.id) return null;
+    return doc(firestore, 'vehicles', params.id);
+  }, [firestore, params.id]);
 
-  if (vehicle === undefined) {
+  const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
+
+
+  if (loading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin" />

@@ -17,7 +17,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { saveSalesperson } from '@/lib/mutations';
 
 const salespersonSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -34,6 +36,8 @@ export function AddSalespersonDialog({
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
+
   const form = useForm<SalespersonFormValues>({
     resolver: zodResolver(salespersonSchema),
     defaultValues: {
@@ -43,18 +47,22 @@ export function AddSalespersonDialog({
   });
 
   async function onSubmit(data: SalespersonFormValues) {
+    if (!firestore) {
+        toast({ variant: 'destructive', title: "Database not connected." });
+        return;
+    }
     setIsSubmitting(true);
-    toast({
-      title: 'Demo Mode',
-      description:
-        'This form is for demonstration purposes. Data is not saved.',
-    });
-    // Simulate a network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    onSalespersonAdded();
-    setOpen(false);
-    form.reset();
-    setIsSubmitting(false);
+    try {
+        await saveSalesperson(firestore, data);
+        toast({ title: 'Salesperson Added', description: `${data.name} has been added.` });
+        onSalespersonAdded();
+        setOpen(false);
+        form.reset();
+    } catch(error: any) {
+        toast({ variant: 'destructive', title: 'Error', description: error.message || "Could not add salesperson." });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -94,7 +102,7 @@ export function AddSalespersonDialog({
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add Salesperson'}
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add Salesperson'}
             </Button>
           </DialogFooter>
         </form>

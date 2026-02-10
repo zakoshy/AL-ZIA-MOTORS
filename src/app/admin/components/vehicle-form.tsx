@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -22,11 +21,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { optimizeImageAndFlag } from '@/ai/flows/image-optimization-and-flagging';
 import Image from 'next/image';
 import {
   AlertCircle,
-  CheckCircle,
   Loader2,
   UploadCloud,
   X,
@@ -34,7 +31,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { getMakes } from '@/lib/data';
+import { getMakes } from '@/lib/makes';
 import {
   Form,
   FormField,
@@ -44,6 +41,9 @@ import {
   FormControl,
 } from '@/components/ui/form';
 import { Combobox } from '@/components/ui/combobox';
+import { useFirestore } from '@/firebase';
+import { saveVehicle } from '@/lib/mutations';
+import { v4 as uuidv4 } from 'uuid';
 
 const vehicleTypes: VehicleType[] = [
   'Coupe',
@@ -90,20 +90,21 @@ const vehicleFormSchema = z.object({
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
 
-type ImagePreview = {
-  fileName: string;
-  dataUri: string;
-  flagged?: boolean;
-  reason?: string;
+type ImageFile = {
+  id: string;
+  file: File;
+  previewUrl: string;
 };
 
 export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const { toast } = useToast();
   const router = useRouter();
+  const firestore = useFirestore();
 
-  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>(
-    vehicle?.images?.map((img) => ({ fileName: img.id, dataUri: img.url })) || []
+  const [existingImages, setExistingImages] = useState<VehicleImage[]>(
+    vehicle?.images || []
   );
+  const [newImageFiles, setNewImageFiles] = useState<ImageFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -131,59 +132,48 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     },
   });
 
-  const handleFiles = async (files: FileList | null) => {
-    if (!files) return;
-    setIsSubmitting(true);
-    const filesToProcess = Array.from(files).filter(
-      (file) => !imagePreviews.some((p) => p.fileName === file.name)
+  const uploadImage = async (file: File): Promise<VehicleImage> => {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Cloudinary configuration is missing.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
     );
 
-    if (filesToProcess.length === 0) {
-      setIsSubmitting(false);
-      return;
+    if (!response.ok) {
+      throw new Error('Image upload failed.');
     }
 
-    const fileProcessingPromises = filesToProcess.map((file) => {
-      return new Promise<ImagePreview>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          const dataUri = e.target?.result as string;
-          if (!dataUri) return reject(new Error('Failed to read file.'));
-          try {
-            const result = await optimizeImageAndFlag({ imageDataUri: dataUri });
-            resolve({
-              fileName: file.name,
-              dataUri: result.optimizedImageDataUri || dataUri,
-              flagged: result.flagForReview,
-              reason: result.reason,
-            });
-          } catch (error) {
-            resolve({
-              fileName: file.name,
-              dataUri,
-              flagged: true,
-              reason: 'Optimization failed.',
-            });
-          }
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-      });
-    });
+    const data = await response.json();
+    return {
+      id: data.public_id,
+      url: data.secure_url,
+      isFeature: false,
+    };
+  };
 
-    try {
-      const newPreviews = await Promise.all(fileProcessingPromises);
-      setImagePreviews((prev) => [...prev, ...newPreviews]);
-    } catch (error) {
-      console.error('Error processing files:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Image Upload Error',
-        description: 'There was a problem reading one of the files.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+
+    const filesToProcess = Array.from(files).map((file) => ({
+      id: uuidv4(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    setNewImageFiles((prev) => [...prev, ...filesToProcess]);
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,29 +191,67 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     }
   };
 
-  const removeImage = (fileName: string) => {
-    setImagePreviews((previews) =>
-      previews.filter((p) => p.fileName !== fileName)
-    );
+  const removeNewImage = (id: string) => {
+    setNewImageFiles((prev) => prev.filter((img) => img.id !== id));
   };
 
+  const removeExistingImage = (id: string) => {
+    setExistingImages((prev) => prev.filter((img) => img.id !== id));
+  };
+  
   async function onSubmit(data: VehicleFormValues) {
+    if (!firestore) {
+      toast({ variant: "destructive", title: "Database connection not found." });
+      return;
+    }
+    
     setIsSubmitting(true);
-    toast({
-      title: 'Demo Mode',
-      description: 'This form is for demonstration purposes. Data is not saved.',
-    });
-    // Simulate a network request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    router.push('/admin/vehicles');
+    
+    try {
+      toast({ title: "Uploading images...", description: "Please wait." });
+      const uploadPromises = newImageFiles.map(imageFile => uploadImage(imageFile.file));
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      const allImages = [...existingImages, ...uploadedImages];
+      if (allImages.length > 0 && !allImages.some(img => img.isFeature)) {
+          allImages[0].isFeature = true;
+      }
+
+      const vehicleData: Omit<Vehicle, 'id'> & { id?: string } = {
+        ...data,
+        images: allImages,
+        id: vehicle?.id,
+      };
+      
+      toast({ title: "Saving vehicle data..." });
+      await saveVehicle(firestore, vehicleData);
+
+      toast({ title: "Success!", description: "Vehicle has been saved." });
+      router.push('/admin/vehicles');
+      router.refresh();
+
+    } catch (error: any) {
+      console.error("Failed to save vehicle:", error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: error.message || "Could not save the vehicle. Please try again."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+  
+  const allImagePreviews = [
+    ...existingImages.map(img => ({ ...img, isNew: false })), 
+    ...newImageFiles.map(img => ({ id: img.id, url: img.previewUrl, isFeature: false, isNew: true }))
+  ];
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FormField
+           <FormField
             control={form.control}
             name="make"
             render={({ field }) => (
@@ -574,43 +602,33 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                 onChange={handleImageUpload}
                 className="hidden"
                 accept="image/jpeg,image/png,image/webp"
+                disabled={isSubmitting}
               />
 
-              {imagePreviews.length > 0 && (
+              {allImagePreviews.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {imagePreviews.map((img) => (
+                  {allImagePreviews.map((img) => (
                     <div
-                      key={img.fileName}
+                      key={img.id}
                       className="relative group aspect-video rounded-lg overflow-hidden border"
                     >
                       <Image
-                        src={img.dataUri}
-                        alt={img.fileName}
+                        src={img.url}
+                        alt="Vehicle image"
                         fill
                         className="object-cover"
                       />
                       <div className="absolute top-1 right-1">
                         <Button
+                          type="button"
                           variant="destructive"
                           size="icon"
                           className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                          onClick={() => removeImage(img.fileName)}
+                          onClick={() => img.isNew ? removeNewImage(img.id) : removeExistingImage(img.id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
-                      {img.flagged ? (
-                        <div className="absolute inset-0 bg-destructive/80 flex flex-col items-center justify-center p-2 text-destructive-foreground text-center">
-                          <AlertCircle className="h-6 w-6" />
-                          <p className="text-xs font-semibold mt-1">
-                            {img.reason}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <CheckCircle className="h-8 w-8 text-white" />
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -624,6 +642,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             variant="outline"
             type="button"
             onClick={() => router.back()}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>

@@ -1,24 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { SalespeopleClient } from './components/salespeople-client';
 import type { Salesperson } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { getSalespeople } from '@/lib/data';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 export default function SalespeoplePage() {
-  const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const data = await getSalespeople();
-      setSalespeople(data);
-      setLoading(false);
-    }
-    loadData();
-  }, []);
+  const firestore = useFirestore();
+  const salespeopleQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'salespeople');
+  }, [firestore]);
+  
+  const { data: salespeople, loading } = useCollection<Salesperson>(salespeopleQuery);
 
   if (loading) {
     return (
