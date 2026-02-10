@@ -38,6 +38,20 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
     onChange(currentValue)
     setOpen(false)
   };
+  
+  // Manual filtering
+  const filteredOptions = search
+    ? options.filter(option =>
+        option.label.toLowerCase().includes(search.toLowerCase())
+      )
+    : options;
+
+  const showCreateOption =
+    creatable &&
+    search.length > 0 &&
+    !options.some(
+      option => option.label.toLowerCase() === search.toLowerCase()
+    );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,23 +69,18 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput 
+        <Command shouldFilter={false}>
+          <CommandInput
             placeholder={searchPlaceholder || "Search..."}
+            value={search}
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>
-                {creatable && search ? (
-                    <CommandItem value={search} onSelect={onSelect}>
-                        Create "{search}"
-                    </CommandItem>
-                ) : (
-                    emptyText || "No options found."
-                )}
-            </CommandEmpty>
+            {filteredOptions.length === 0 && !showCreateOption ? (
+              <CommandEmpty>{emptyText || "No options found."}</CommandEmpty>
+            ) : null}
             <CommandGroup>
-              {options.map((option) => (
+              {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
@@ -86,6 +95,16 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
                   {option.label}
                 </CommandItem>
               ))}
+              {showCreateOption ? (
+                 <CommandItem
+                  key={search}
+                  value={search}
+                  onSelect={onSelect}
+                >
+                   <Check className={cn("mr-2 h-4 w-4", "opacity-0")} />
+                  Create "{search}"
+                </CommandItem>
+              ) : null}
             </CommandGroup>
           </CommandList>
         </Command>
