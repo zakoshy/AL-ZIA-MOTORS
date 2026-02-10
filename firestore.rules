@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read-only access to the vehicles collection
+    match /vehicles/{vehicleId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Only authenticated users (admins) can access salespeople data
+    match /salespeople/{salespersonId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
