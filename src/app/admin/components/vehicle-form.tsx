@@ -300,9 +300,10 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                   options={makes.map((make) => ({ value: make, label: make }))}
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder="Select a make"
+                  placeholder="Select or type a make"
                   searchPlaceholder="Search makes..."
                   emptyText="No make found."
+                  creatable
                 />
                 <FormMessage />
               </FormItem>

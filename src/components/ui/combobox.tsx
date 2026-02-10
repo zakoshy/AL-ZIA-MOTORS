@@ -19,7 +19,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-
 type ComboboxProps = {
     options: { value: string; label: string }[];
     value?: string;
@@ -28,10 +27,17 @@ type ComboboxProps = {
     searchPlaceholder?: string;
     emptyText?: string;
     className?: string;
+    creatable?: boolean;
 }
 
-export function Combobox({ options, value, onChange, placeholder, searchPlaceholder, emptyText, className }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false)
+export function Combobox({ options, value, onChange, placeholder, searchPlaceholder, emptyText, className, creatable = false }: ComboboxProps) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
+
+  const onSelect = (currentValue: string) => {
+    onChange(currentValue)
+    setOpen(false)
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -40,33 +46,41 @@ export function Combobox({ options, value, onChange, placeholder, searchPlacehol
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn("w-full justify-between", className)}
+          className={cn("w-full justify-between font-normal", !value && "text-muted-foreground", className)}
         >
           {value
-            ? options.find((option) => option.value === value)?.label
+            ? options.find((option) => option.value.toLowerCase() === value.toLowerCase())?.label ?? value
             : placeholder || "Select option..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder={searchPlaceholder || "Search..."} />
+          <CommandInput 
+            placeholder={searchPlaceholder || "Search..."}
+            onValueChange={setSearch}
+          />
           <CommandList>
-            <CommandEmpty>{emptyText || "No options found."}</CommandEmpty>
+            <CommandEmpty>
+                {creatable && search ? (
+                    <CommandItem value={search} onSelect={onSelect}>
+                        Create "{search}"
+                    </CommandItem>
+                ) : (
+                    emptyText || "No options found."
+                )}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue)
-                    setOpen(false)
-                  }}
+                  onSelect={onSelect}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      value?.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}
