@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { updateProfile } from 'firebase/auth';
@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
       toast({
         title: "Success",
-        description: "Your profile has been updated.",
+        description: "Your profile has been-updated.",
       });
       setPhotoPreview(null);
       setPhotoFile(null);
