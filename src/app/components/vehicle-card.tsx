@@ -48,7 +48,14 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
           <p className="text-sm text-muted-foreground">{vehicle.year}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
-          <p className="text-xl font-bold text-primary">{formatCurrency(vehicle.price, vehicle.currency)}</p>
+          {vehicle.status === 'Sold' && typeof vehicle.finalPrice === 'number' ? (
+            <div className="flex flex-col items-start">
+              <span className="text-xs text-muted-foreground -mb-1">Sold for</span>
+              <p className="text-lg font-bold text-primary">{formatCurrency(vehicle.finalPrice, vehicle.currency)}</p>
+            </div>
+          ) : (
+            <p className="text-xl font-bold text-primary">{formatCurrency(vehicle.price, vehicle.currency)}</p>
+          )}
           <div className="text-sm text-muted-foreground">{vehicle.mileage.toLocaleString()} km</div>
         </CardFooter>
       </Card>

@@ -84,7 +84,7 @@ const vehicleFormSchema = z.object({
   arrivalDate: z.string().optional(),
   saleDate: z.string().optional(),
   buyerDetails: z.string().optional(),
-  finalPrice: z.coerce.number().optional(),
+  finalPrice: z.coerce.number().positive('Final price must be a positive number.').optional(),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
@@ -285,6 +285,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       isNew: true,
     })),
   ];
+
+  const status = form.watch('status');
 
   return (
     <Form {...form}>
@@ -604,7 +606,72 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
+          {status === 'Incoming' && (
+             <FormField
+                control={form.control}
+                name="arrivalDate"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Arrival Date</FormLabel>
+                    <FormControl>
+                    <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+          )}
         </div>
+
+        {status === 'Sold' && (
+          <Card>
+            <CardHeader>
+                <CardTitle>Sale Information</CardTitle>
+                <CardDescription>Enter the details of the sale for this vehicle.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="saleDate"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Sale Date</FormLabel>
+                        <FormControl>
+                        <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="finalPrice"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Final Sale Price</FormLabel>
+                        <FormControl>
+                        <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="buyerDetails"
+                    render={({ field }) => (
+                    <FormItem className="md:col-span-2 lg:col-span-3">
+                        <FormLabel>Buyer Details</FormLabel>
+                        <FormControl>
+                        <Input {...field} placeholder="e.g., John Doe, +1-555-1234" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>

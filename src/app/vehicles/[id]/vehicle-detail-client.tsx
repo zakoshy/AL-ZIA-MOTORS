@@ -135,10 +135,20 @@ export function VehicleDetailClient({ vehicleId }: { vehicleId: string }) {
           <p className="text-lg text-muted-foreground">{vehicle.year}</p>
 
           <div className="my-6">
-            <p className="text-4xl font-bold text-primary flex items-center gap-2">
-              <CircleDollarSign className="h-8 w-8" />
-              {formatCurrency(vehicle.price, vehicle.currency)}
-            </p>
+             {vehicle.status === 'Sold' && typeof vehicle.finalPrice === 'number' ? (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Sold For</p>
+                  <p className="text-4xl font-bold text-primary flex items-center gap-2">
+                    <CircleDollarSign className="h-8 w-8" />
+                    {formatCurrency(vehicle.finalPrice, vehicle.currency)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-4xl font-bold text-primary flex items-center gap-2">
+                  <CircleDollarSign className="h-8 w-8" />
+                  {formatCurrency(vehicle.price, vehicle.currency)}
+                </p>
+              )}
           </div>
 
           <Card>
@@ -158,9 +168,15 @@ export function VehicleDetailClient({ vehicleId }: { vehicleId: string }) {
             </CardContent>
           </Card>
 
-          <Button size="lg" className="w-full mt-6 text-lg" asChild>
-            <Link href="/contact">Inquire About This Vehicle</Link>
-          </Button>
+           {vehicle.status !== 'Sold' ? (
+              <Button size="lg" className="w-full mt-6 text-lg" asChild>
+                <Link href="/contact">Inquire About This Vehicle</Link>
+              </Button>
+            ) : (
+              <Button size="lg" className="w-full mt-6 text-lg" disabled>
+                This vehicle has been sold
+              </Button>
+            )}
         </div>
       </div>
     </div>

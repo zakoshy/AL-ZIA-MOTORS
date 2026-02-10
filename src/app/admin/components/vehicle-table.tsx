@@ -153,7 +153,14 @@ export function VehicleTable({ vehicles, isLoading }: { vehicles: Vehicle[], isL
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                {formatCurrency(vehicle.price, vehicle.currency)}
+                {vehicle.status === 'Sold' && typeof vehicle.finalPrice === 'number' ? (
+                  <div className='flex flex-col items-end'>
+                    <span className="text-xs text-muted-foreground">Sold for </span>
+                    {formatCurrency(vehicle.finalPrice, vehicle.currency)}
+                  </div>
+                ) : (
+                  formatCurrency(vehicle.price, vehicle.currency)
+                )}
               </TableCell>
               <TableCell>
                 <DropdownMenu>
