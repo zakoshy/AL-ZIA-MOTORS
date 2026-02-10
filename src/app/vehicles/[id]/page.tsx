@@ -1,27 +1,49 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useMemo } from 'react';
-import { notFound } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar, GaugeCircle, ShieldCheck, Tag, Car, CircleDollarSign, Fuel, Fingerprint, Clipboard, Cog, Settings, Palette, Loader2 } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { formatCurrency } from "@/lib/utils";
-import { useDoc, useFirestore } from "@/firebase";
-import { doc } from "firebase/firestore";
-import type { Vehicle } from "@/lib/types";
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { notFound } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Calendar,
+  GaugeCircle,
+  ShieldCheck,
+  Tag,
+  Car,
+  CircleDollarSign,
+  Fuel,
+  Fingerprint,
+  Clipboard,
+  Cog,
+  Settings,
+  Palette,
+  Loader2,
+} from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { formatCurrency } from '@/lib/utils';
+import type { Vehicle } from '@/lib/types';
+import { getVehicleById } from '@/lib/data';
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const firestore = useFirestore();
-  const vehicleRef = useMemo(() => {
-    if (!firestore) return null;
-    return doc(firestore, "vehicles", params.id);
-  }, [firestore, params.id]);
-  const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
+  const [vehicle, setVehicle] = useState<Vehicle | null | undefined>(undefined);
 
-  if (loading) {
+  useEffect(() => {
+    async function loadData() {
+      const v = await getVehicleById(params.id);
+      setVehicle(v);
+    }
+    loadData();
+  }, [params.id]);
+
+  if (vehicle === undefined) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="h-10 w-10 animate-spin" />
@@ -32,22 +54,30 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
   if (!vehicle) {
     notFound();
   }
-  
+
   const galleryImages = vehicle.images?.length > 0 ? vehicle.images : [];
 
   const vehicleDetails = [
-    { icon: Car, label: "Make & Model", value: `${vehicle.make} ${vehicle.model}` },
-    { icon: Clipboard, label: "Reference No", value: vehicle.referenceNumber },
-    { icon: Fingerprint, label: "Chassis No.", value: vehicle.chassisNumber },
-    { icon: Car, label: "Vehicle Type", value: vehicle.vehicleType },
-    { icon: Calendar, label: "Year", value: vehicle.year },
-    { icon: Palette, label: "Color", value: vehicle.color },
-    { icon: Cog, label: "Drivetrain", value: vehicle.drivetrain },
-    { icon: Settings, label: "Transmission", value: vehicle.transmission },
-    { icon: Fuel, label: "Fuel", value: vehicle.fuel },
-    { icon: GaugeCircle, label: "Mileage", value: `${vehicle.mileage.toLocaleString()} km` },
-    { icon: Tag, label: "Condition", value: vehicle.condition },
-    { icon: ShieldCheck, label: "Inspection", value: vehicle.inspectionStatus },
+    {
+      icon: Car,
+      label: 'Make & Model',
+      value: `${vehicle.make} ${vehicle.model}`,
+    },
+    { icon: Clipboard, label: 'Reference No', value: vehicle.referenceNumber },
+    { icon: Fingerprint, label: 'Chassis No.', value: vehicle.chassisNumber },
+    { icon: Car, label: 'Vehicle Type', value: vehicle.vehicleType },
+    { icon: Calendar, label: 'Year', value: vehicle.year },
+    { icon: Palette, label: 'Color', value: vehicle.color },
+    { icon: Cog, label: 'Drivetrain', value: vehicle.drivetrain },
+    { icon: Settings, label: 'Transmission', value: vehicle.transmission },
+    { icon: Fuel, label: 'Fuel', value: vehicle.fuel },
+    {
+      icon: GaugeCircle,
+      label: 'Mileage',
+      value: `${vehicle.mileage.toLocaleString()} km`,
+    },
+    { icon: Tag, label: 'Condition', value: vehicle.condition },
+    { icon: ShieldCheck, label: 'Inspection', value: vehicle.inspectionStatus },
   ];
 
   return (
@@ -63,7 +93,9 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                       <div className="aspect-[4/3] relative">
                         <Image
                           src={image.url}
-                          alt={`${vehicle.make} ${vehicle.model} - Image ${index + 1}`}
+                          alt={`${vehicle.make} ${vehicle.model} - Image ${
+                            index + 1
+                          }`}
                           fill
                           className="object-cover"
                         />
@@ -73,25 +105,27 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
                 ))}
               </CarouselContent>
               <CarouselPrevious className="ml-16" />
-              <CarouselNext className="mr-16"/>
+              <CarouselNext className="mr-16" />
             </Carousel>
           ) : (
-             <Card className="overflow-hidden">
-                <div className="aspect-[4/3] relative bg-muted flex items-center justify-center">
-                  <p className="text-muted-foreground">No Image Available</p>
-                </div>
-              </Card>
+            <Card className="overflow-hidden">
+              <div className="aspect-[4/3] relative bg-muted flex items-center justify-center">
+                <p className="text-muted-foreground">No Image Available</p>
+              </div>
+            </Card>
           )}
         </div>
-        
+
         <div>
           <Badge>{vehicle.status}</Badge>
-          <h1 className="font-headline text-3xl md:text-4xl font-bold mt-2">{vehicle.make} {vehicle.model}</h1>
+          <h1 className="font-headline text-3xl md:text-4xl font-bold mt-2">
+            {vehicle.make} {vehicle.model}
+          </h1>
           <p className="text-lg text-muted-foreground">{vehicle.year}</p>
 
           <div className="my-6">
             <p className="text-4xl font-bold text-primary flex items-center gap-2">
-              <CircleDollarSign className="h-8 w-8"/>
+              <CircleDollarSign className="h-8 w-8" />
               {formatCurrency(vehicle.price, vehicle.currency)}
             </p>
           </div>
@@ -112,7 +146,7 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
               ))}
             </CardContent>
           </Card>
-          
+
           <Button size="lg" className="w-full mt-6 text-lg">
             Inquire About This Vehicle
           </Button>

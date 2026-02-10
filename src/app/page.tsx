@@ -1,29 +1,30 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { VehicleCard } from "@/app/components/vehicle-card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { ArrowRight, Loader2 } from "lucide-react";
-import { useCollection, useFirestore } from "@/firebase";
-import { collection, query, where, limit } from "firebase/firestore";
-import type { Vehicle } from "@/lib/types";
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { VehicleCard } from '@/app/components/vehicle-card';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import type { Vehicle } from '@/lib/types';
+import { getVehicles } from '@/lib/data';
 
 export default function Home() {
-  const firestore = useFirestore();
-  const featuredVehiclesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(
-      collection(firestore, "vehicles"), 
-      where('status', '==', 'Available'), 
-      limit(3)
-    );
-  }, [firestore]);
-  const { data: featuredVehicles, loading } = useCollection<Vehicle>(featuredVehiclesQuery);
-  
-  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-mercedes');
+  const [featuredVehicles, setFeaturedVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const vehicles = await getVehicles({ status: 'Available', limit: 3 });
+      setFeaturedVehicles(vehicles);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
+
+  const heroImage = PlaceHolderImages.find((p) => p.id === 'hero-mercedes');
 
   return (
     <div className="flex flex-col">
@@ -47,7 +48,8 @@ export default function Home() {
             Premium Japanese & Thailand Vehicles
           </h1>
           <p className="mt-4 text-lg md:text-2xl max-w-3xl drop-shadow-md">
-            Directly imported for the discerning enthusiast. Quality, reliability, and performance delivered.
+            Directly imported for the discerning enthusiast. Quality,
+            reliability, and performance delivered.
           </p>
           <Button asChild size="lg" className="mt-8 text-lg">
             <Link href="/vehicles">
@@ -59,9 +61,12 @@ export default function Home() {
 
       <section className="py-12 md:py-20 bg-secondary">
         <div className="container mx-auto px-4">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold text-center">Featured Vehicles</h2>
+          <h2 className="font-headline text-3xl md:text-4xl font-bold text-center">
+            Featured Vehicles
+          </h2>
           <p className="mt-2 text-center text-muted-foreground max-w-2xl mx-auto">
-            A curated selection of our finest available cars. Explore the best of JDM culture.
+            A curated selection of our finest available cars. Explore the best
+            of JDM culture.
           </p>
           <div className="mt-10">
             {loading ? (
@@ -78,9 +83,7 @@ export default function Home() {
           </div>
           <div className="text-center mt-12">
             <Button asChild variant="outline">
-              <Link href="/vehicles">
-                Explore All Vehicles
-              </Link>
+              <Link href="/vehicles">Explore All Vehicles</Link>
             </Button>
           </div>
         </div>

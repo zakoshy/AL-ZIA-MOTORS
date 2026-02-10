@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { Salesperson } from "@/lib/types";
-import { useState } from "react";
+import type { Salesperson } from '@/lib/types';
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -9,16 +9,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Trash2 } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,16 +28,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import { useFirestore } from "@/firebase";
-import { doc, deleteDoc } from "firebase/firestore";
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
-export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }) {
+export function SalespeopleTable({
+  salespeople,
+}: {
+  salespeople: Salesperson[];
+}) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedSalesperson, setSelectedSalesperson] = useState<Salesperson | null>(null);
+  const [selectedSalesperson, setSelectedSalesperson] =
+    useState<Salesperson | null>(null);
   const { toast } = useToast();
-  const firestore = useFirestore();
+  const router = useRouter();
 
   const handleDeleteClick = (salesperson: Salesperson) => {
     setSelectedSalesperson(salesperson);
@@ -45,31 +49,23 @@ export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedSalesperson || !firestore) return;
-
-    try {
-      await deleteDoc(doc(firestore, "salespeople", selectedSalesperson.id));
-      toast({
-        title: "Success",
-        description: "Salesperson deleted.",
-      });
-    } catch (error) {
-       toast({
-        title: "Error",
-        description: "Failed to delete salesperson.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleteDialogOpen(false);
-      setSelectedSalesperson(null);
-    }
+    if (!selectedSalesperson) return;
+    toast({
+      title: 'Demo Mode',
+      description: 'Salesperson deletion is disabled for this demonstration.',
+    });
+    router.refresh();
+    setIsDeleteDialogOpen(false);
+    setSelectedSalesperson(null);
   };
 
   if (salespeople.length === 0) {
     return (
       <div className="text-center py-20 bg-card rounded-lg border">
         <h2 className="text-xl font-semibold">No Salespeople Found</h2>
-        <p className="text-muted-foreground mt-2">Add a salesperson to get started.</p>
+        <p className="text-muted-foreground mt-2">
+          Add a salesperson to get started.
+        </p>
       </div>
     );
   }
@@ -114,18 +110,25 @@ export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }
           ))}
         </TableBody>
       </Table>
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the salesperson&apos;s profile.
-              This does not delete their authentication account.
+              This action cannot be undone. This will permanently delete the
+              salesperson&apos;s profile. This does not delete their
+              authentication account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

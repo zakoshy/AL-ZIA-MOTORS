@@ -1,33 +1,38 @@
-"use client";
+'use client';
 
-import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, PlusCircle } from "lucide-react";
-import Link from "next/link";
-import { VehicleTable } from "@/app/admin/components/vehicle-table";
-import type { Vehicle } from "@/lib/types";
-import { useCollection, useFirestore } from "@/firebase";
-import { collection, query } from "firebase/firestore";
+import { useState, useMemo, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { VehicleTable } from '@/app/admin/components/vehicle-table';
+import type { Vehicle } from '@/lib/types';
+import { getVehicles } from '@/lib/data';
 
 export default function AdminVehiclesPage() {
-  const firestore = useFirestore();
-  const vehiclesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'vehicles'));
-  }, [firestore]);
-  const { data: vehicles, loading } = useCollection<Vehicle>(vehiclesQuery);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { allVehicles, availableVehicles, incomingVehicles, soldVehicles } = useMemo(() => {
-    const all = vehicles || [];
-    return {
-      allVehicles: all,
-      availableVehicles: all.filter(v => v.status === "Available"),
-      incomingVehicles: all.filter(v => v.status === "Incoming"),
-      soldVehicles: all.filter(v => v.status === "Sold"),
-    };
-  }, [vehicles]);
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await getVehicles();
+      setVehicles(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
+  const { allVehicles, availableVehicles, incomingVehicles, soldVehicles } =
+    useMemo(() => {
+      const all = vehicles || [];
+      return {
+        allVehicles: all,
+        availableVehicles: all.filter((v) => v.status === 'Available'),
+        incomingVehicles: all.filter((v) => v.status === 'Incoming'),
+        soldVehicles: all.filter((v) => v.status === 'Sold'),
+      };
+    }, [vehicles]);
 
   return (
     <div className="grid flex-1 items-start gap-4">

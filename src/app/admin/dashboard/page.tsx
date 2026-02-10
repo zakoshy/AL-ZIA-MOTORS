@@ -1,62 +1,91 @@
 'use client';
 
-import { useMemo } from "react";
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
-} from "@/components/ui/card";
+  CardDescription,
+} from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { Car, DollarSign, PackageCheck, PackageOpen } from "lucide-react";
-import { useCollection, useFirestore } from "@/firebase";
-import { collection, query } from "firebase/firestore";
-import type { Vehicle } from "@/lib/types";
+} from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { Car, DollarSign, PackageCheck, PackageOpen } from 'lucide-react';
+import type { Vehicle } from '@/lib/types';
+import { getVehicles } from '@/lib/data';
+import { Loader2 } from 'lucide-react';
 
 const chartData = [
-  { month: "January", sales: 186 },
-  { month: "February", sales: 305 },
-  { month: "March", sales: 237 },
-  { month: "April", sales: 273 },
-  { month: "May", sales: 209 },
-  { month: "June", sales: 214 },
+  { month: 'January', sales: 186 },
+  { month: 'February', sales: 305 },
+  { month: 'March', sales: 237 },
+  { month: 'April', sales: 273 },
+  { month: 'May', sales: 209 },
+  { month: 'June', sales: 214 },
 ];
 
 const chartConfig = {
   sales: {
-    label: "Sales",
-    color: "hsl(var(--primary))",
+    label: 'Sales',
+    color: 'hsl(var(--primary))',
   },
 };
 
 export default function DashboardPage() {
-  const firestore = useFirestore();
-  const vehiclesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, "vehicles"));
-  }, [firestore]);
-  const { data: vehicles } = useCollection<Vehicle>(vehiclesQuery);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await getVehicles();
+      setVehicles(data);
+      setLoading(false);
+    }
+    loadData();
+  }, []);
 
   const totalVehicles = vehicles?.length ?? 0;
-  const availableVehicles = vehicles?.filter(v => v.status === "Available").length ?? 0;
-  const soldVehicles = vehicles?.filter(v => v.status === "Sold").length ?? 0;
-  const incomingVehicles = vehicles?.filter(v => v.status === "Incoming").length ?? 0;
-  const totalRevenue = vehicles
-    ?.filter(v => v.status === 'Sold' && v.finalPrice)
-    .reduce((acc, v) => acc + (v.finalPrice || 0), 0) ?? 0;
+  const availableVehicles =
+    vehicles?.filter((v) => v.status === 'Available').length ?? 0;
+  const soldVehicles = vehicles?.filter((v) => v.status === 'Sold').length ?? 0;
+  const incomingVehicles =
+    vehicles?.filter((v) => v.status === 'Incoming').length ?? 0;
+  const totalRevenue =
+    vehicles
+      ?.filter((v) => v.status === 'Sold' && v.finalPrice)
+      .reduce((acc, v) => acc + (v.finalPrice || 0), 0) ?? 0;
 
   const stats = [
-    { title: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign },
-    { title: "Available Vehicles", value: availableVehicles, icon: PackageCheck },
-    { title: "Sold Vehicles", value: soldVehicles, icon: Car },
-    { title: "Incoming Shipments", value: incomingVehicles, icon: PackageOpen },
+    {
+      title: 'Total Revenue',
+      value: `$${totalRevenue.toLocaleString()}`,
+      icon: DollarSign,
+    },
+    {
+      title: 'Available Vehicles',
+      value: availableVehicles,
+      icon: PackageCheck,
+    },
+    { title: 'Sold Vehicles', value: soldVehicles, icon: Car },
+    {
+      title: 'Incoming Shipments',
+      value: incomingVehicles,
+      icon: PackageOpen,
+    },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6">
@@ -76,14 +105,25 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Sales Overview</CardTitle>
-          <CardDescription>A summary of vehicle sales over the past 6 months.</CardDescription>
+          <CardDescription>
+            A summary of vehicle sales over the past 6 months.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  fontSize={12}
+                />
                 <YAxis />
                 <ChartTooltip
                   cursor={false}

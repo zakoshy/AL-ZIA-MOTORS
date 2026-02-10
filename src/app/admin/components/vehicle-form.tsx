@@ -1,50 +1,91 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { Vehicle, VehicleImage, VehicleType } from "@/lib/types";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { optimizeImageAndFlag } from "@/ai/flows/image-optimization-and-flagging";
-import Image from "next/image";
-import { AlertCircle, CheckCircle, Loader2, UploadCloud, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { getMakes } from "@/lib/data";
-import { Form, FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
-import { Combobox } from "@/components/ui/combobox";
-import { useFirestore, useStorage } from "@/firebase";
-import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { v4 as uuidv4 } from "uuid";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
+import { useState } from 'react';
+import type { Vehicle, VehicleImage, VehicleType } from '@/lib/types';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { optimizeImageAndFlag } from '@/ai/flows/image-optimization-and-flagging';
+import Image from 'next/image';
+import {
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  UploadCloud,
+  X,
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { getMakes } from '@/lib/data';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormControl,
+} from '@/components/ui/form';
+import { Combobox } from '@/components/ui/combobox';
 
-const vehicleTypes: VehicleType[] = ["Coupe", "Hatchback", "Minivan", "Sedan", "Pickup", "SWagon", "SUV", "TWagon", "Truck", "Van"];
+const vehicleTypes: VehicleType[] = [
+  'Coupe',
+  'Hatchback',
+  'Minivan',
+  'Sedan',
+  'Pickup',
+  'SWagon',
+  'SUV',
+  'TWagon',
+  'Truck',
+  'Van',
+];
 
 const vehicleFormSchema = z.object({
-  make: z.string().min(1, "Make is required"),
-  model: z.string().min(1, "Model is required"),
-  year: z.coerce.number().int().min(1900, "Invalid year"),
-  referenceNumber: z.string().min(1, "Reference number is required"),
-  chassisNumber: z.string().min(5, "Chassis number is required."),
-  drivetrain: z.enum(["4x4", "2WD", "AWD", "FWD", "RWD"]),
-  transmission: z.enum(["Automatic", "Manual"]),
-  color: z.string().min(1, "Color is required"),
-  fuel: z.enum(["Petrol", "Diesel", "Hybrid", "Electric", "LPG"]),
-  vehicleType: z.enum(["Coupe", "Hatchback", "Minivan", "Sedan", "Pickup", "SWagon", "SUV", "TWagon", "Truck", "Van"]),
-  mileage: z.coerce.number().nonnegative("Mileage must be a positive number"),
-  condition: z.enum(["New", "Used", "Damaged"]),
-  price: z.coerce.number().positive("Price must be a positive number"),
-  currency: z.enum(["USD", "KSh"]),
-  status: z.enum(["Incoming", "Available", "Sold"]),
-  inspectionStatus: z.enum(["Pending", "Passed", "Failed"]),
+  make: z.string().min(1, 'Make is required'),
+  model: z.string().min(1, 'Model is required'),
+  year: z.coerce.number().int().min(1900, 'Invalid year'),
+  referenceNumber: z.string().min(1, 'Reference number is required'),
+  chassisNumber: z.string().min(5, 'Chassis number is required.'),
+  drivetrain: z.enum(['4x4', '2WD', 'AWD', 'FWD', 'RWD']),
+  transmission: z.enum(['Automatic', 'Manual']),
+  color: z.string().min(1, 'Color is required'),
+  fuel: z.enum(['Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG']),
+  vehicleType: z.enum([
+    'Coupe',
+    'Hatchback',
+    'Minivan',
+    'Sedan',
+    'Pickup',
+    'SWagon',
+    'SUV',
+    'TWagon',
+    'Truck',
+    'Van',
+  ]),
+  mileage: z.coerce.number().nonnegative('Mileage must be a positive number'),
+  condition: z.enum(['New', 'Used', 'Damaged']),
+  price: z.coerce.number().positive('Price must be a positive number'),
+  currency: z.enum(['USD', 'KSh']),
+  status: z.enum(['Incoming', 'Available', 'Sold']),
+  inspectionStatus: z.enum(['Pending', 'Passed', 'Failed']),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
@@ -59,11 +100,9 @@ type ImagePreview = {
 export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const { toast } = useToast();
   const router = useRouter();
-  const firestore = useFirestore();
-  const storage = useStorage();
 
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>(
-    vehicle?.images?.map(img => ({ fileName: img.id, dataUri: img.url })) || []
+    vehicle?.images?.map((img) => ({ fileName: img.id, dataUri: img.url })) || []
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -73,22 +112,22 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const form = useForm<VehicleFormValues>({
     resolver: zodResolver(vehicleFormSchema),
     defaultValues: vehicle || {
-      make: "",
-      model: "",
+      make: '',
+      model: '',
       year: new Date().getFullYear(),
-      referenceNumber: "",
-      chassisNumber: "",
-      drivetrain: "RWD",
-      transmission: "Manual",
-      color: "",
-      fuel: "Petrol",
-      vehicleType: "Sedan",
+      referenceNumber: '',
+      chassisNumber: '',
+      drivetrain: 'RWD',
+      transmission: 'Manual',
+      color: '',
+      fuel: 'Petrol',
+      vehicleType: 'Sedan',
       mileage: 0,
-      condition: "Used",
+      condition: 'Used',
       price: 0,
-      currency: "USD",
-      status: "Available",
-      inspectionStatus: "Pending",
+      currency: 'USD',
+      status: 'Available',
+      inspectionStatus: 'Pending',
     },
   });
 
@@ -100,9 +139,9 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     );
 
     if (filesToProcess.length === 0) {
-        setIsSubmitting(false);
-        return;
-    };
+      setIsSubmitting(false);
+      return;
+    }
 
     const fileProcessingPromises = filesToProcess.map((file) => {
       return new Promise<ImagePreview>((resolve, reject) => {
@@ -143,7 +182,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         description: 'There was a problem reading one of the files.',
       });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -151,7 +190,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     handleFiles(event.target.files);
     event.target.value = '';
   };
-  
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -163,63 +202,21 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   };
 
   const removeImage = (fileName: string) => {
-    setImagePreviews(previews => previews.filter(p => p.fileName !== fileName));
+    setImagePreviews((previews) =>
+      previews.filter((p) => p.fileName !== fileName)
+    );
   };
 
   async function onSubmit(data: VehicleFormValues) {
-    if (!firestore || !storage) {
-        toast({ title: "Error", description: "Firebase not initialized.", variant: "destructive" });
-        return;
-    }
     setIsSubmitting(true);
-
-    try {
-        const imageUrls: VehicleImage[] = await Promise.all(
-            imagePreviews.map(async (img, index) => {
-                // If the image is already a firebase storage url, don't re-upload
-                if (img.dataUri.includes('firebasestorage.googleapis.com')) {
-                    return { id: img.fileName, url: img.dataUri, isFeature: index === 0 };
-                }
-
-                const imageId = uuidv4();
-                const storageRef = ref(storage, `vehicles/${imageId}-${img.fileName}`);
-                const snapshot = await uploadString(storageRef, img.dataUri, 'data_url');
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                return { id: imageId, url: downloadURL, isFeature: index === 0 };
-            })
-        );
-        
-        const vehiclePayload = {
-            ...data,
-            images: imageUrls,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-
-        if (vehicle) {
-            // Update
-            const vehicleRef = doc(firestore, 'vehicles', vehicle.id);
-            await setDoc(vehicleRef, { ...vehiclePayload, createdAt: vehicle.createdAt }, { merge: true });
-            toast({ title: "Success", description: "Vehicle updated successfully." });
-        } else {
-            // Create
-            const docRef = await addDoc(collection(firestore, 'vehicles'), vehiclePayload);
-            toast({ title: "Success", description: "Vehicle created successfully." });
-        }
-        router.push("/admin/vehicles");
-        router.refresh();
-
-    } catch (error: any) {
-       console.error("Error saving vehicle: ", error);
-       const permissionError = new FirestorePermissionError({
-            path: vehicle ? `vehicles/${vehicle.id}` : 'vehicles',
-            operation: vehicle ? 'update' : 'create',
-            requestResourceData: data
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast({
+      title: 'Demo Mode',
+      description: 'This form is for demonstration purposes. Data is not saved.',
+    });
+    // Simulate a network request
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    setIsSubmitting(false);
+    router.push('/admin/vehicles');
   }
 
   return (
@@ -296,7 +293,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="color"
             render={({ field }) => (
@@ -315,9 +312,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Drivetrain</FormLabel>
-                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="4x4">4x4</SelectItem>
@@ -331,15 +333,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="transmission"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Transmission</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Manual">Manual</SelectItem>
@@ -350,15 +357,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="fuel"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Fuel Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Petrol">Petrol</SelectItem>
@@ -372,19 +384,26 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="vehicleType"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Vehicle Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {vehicleTypes.map((type) => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -418,15 +437,20 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="currency"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Currency</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="USD">USD</SelectItem>
@@ -443,9 +467,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Condition</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="New">New</SelectItem>
@@ -463,9 +492,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Availability Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Incoming">Incoming</SelectItem>
@@ -483,9 +517,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Inspection Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="Pending">Pending</SelectItem>
@@ -498,45 +537,74 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             )}
           />
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Vehicle Images</CardTitle>
-            <CardDescription>Upload images for the vehicle. The first image will be the featured one.</CardDescription>
+            <CardDescription>
+              Upload images for the vehicle. The first image will be the
+              featured one.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
               <label
-                  htmlFor="file-upload"
-                  onDragEnter={() => setIsDragging(true)}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  className={cn(
-                      "w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors",
-                      isDragging && "bg-accent/10 border-accent"
-                  )}
+                htmlFor="file-upload"
+                onDragEnter={() => setIsDragging(true)}
+                onDragLeave={() => setIsDragging(false)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                className={cn(
+                  'w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted transition-colors',
+                  isDragging && 'bg-accent/10 border-accent'
+                )}
               >
                 <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
-                <p className="text-xs text-muted-foreground">JPEG, PNG, WEBP</p>
+                <p className="text-sm text-muted-foreground">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG, WEBP
+                </p>
               </label>
-              <Input id="file-upload" type="file" multiple onChange={handleImageUpload} className="hidden" accept="image/jpeg,image/png,image/webp" />
+              <Input
+                id="file-upload"
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                accept="image/jpeg,image/png,image/webp"
+              />
 
               {imagePreviews.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {imagePreviews.map((img) => (
-                    <div key={img.fileName} className="relative group aspect-video rounded-lg overflow-hidden border">
-                      <Image src={img.dataUri} alt={img.fileName} fill className="object-cover" />
+                    <div
+                      key={img.fileName}
+                      className="relative group aspect-video rounded-lg overflow-hidden border"
+                    >
+                      <Image
+                        src={img.dataUri}
+                        alt={img.fileName}
+                        fill
+                        className="object-cover"
+                      />
                       <div className="absolute top-1 right-1">
-                        <Button variant="destructive" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => removeImage(img.fileName)}>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => removeImage(img.fileName)}
+                        >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
                       {img.flagged ? (
                         <div className="absolute inset-0 bg-destructive/80 flex flex-col items-center justify-center p-2 text-destructive-foreground text-center">
                           <AlertCircle className="h-6 w-6" />
-                          <p className="text-xs font-semibold mt-1">{img.reason}</p>
+                          <p className="text-xs font-semibold mt-1">
+                            {img.reason}
+                          </p>
                         </div>
                       ) : (
                         <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -550,11 +618,21 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             </div>
           </CardContent>
         </Card>
-        
+
         <div className="flex justify-end gap-2">
-          <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => router.back()}
+          >
+            Cancel
+          </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Vehicle"}
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'Save Vehicle'
+            )}
           </Button>
         </div>
       </form>
