@@ -1,4 +1,7 @@
+"use client";
+
 import type { Vehicle } from "@/lib/types";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -15,24 +18,72 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
+import { useFirestore } from "@/firebase";
+import { doc, deleteDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export function VehicleTable({ vehicles }: { vehicles: Vehicle[] }) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const router = useRouter();
+
   if (vehicles.length === 0) {
     return (
       <div className="text-center py-20 bg-card rounded-lg border">
         <h2 className="text-xl font-semibold">No Vehicles Found</h2>
         <p className="text-muted-foreground mt-2">There are no vehicles matching the current filter.</p>
       </div>
-    )
+    );
   }
+  
+  const handleDeleteClick = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedVehicle || !firestore) return;
+
+    try {
+      await deleteDoc(doc(firestore, "vehicles", selectedVehicle.id));
+      toast({
+        title: "Success",
+        description: "Vehicle deleted.",
+      });
+      router.refresh();
+    } catch (error) {
+       toast({
+        title: "Error",
+        description: "Failed to delete vehicle.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setSelectedVehicle(null);
+    }
+  };
+
 
   return (
+    <>
     <Table>
       <TableHeader>
         <TableRow>
@@ -85,7 +136,10 @@ export function VehicleTable({ vehicles }: { vehicles: Vehicle[] }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
+                  <DropdownMenuItem 
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => handleDeleteClick(vehicle)}
+                    >
                     <Trash2 className="mr-2 h-4 w-4" /> Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -95,5 +149,22 @@ export function VehicleTable({ vehicles }: { vehicles: Vehicle[] }) {
         ))}
       </TableBody>
     </Table>
+     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this vehicle data from the servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

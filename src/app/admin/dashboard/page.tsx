@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { Car, DollarSign, PackageCheck, PackageOpen } from "lucide-react";
-import { getVehicles } from "@/lib/data";
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query } from "firebase/firestore";
+import type { Vehicle } from "@/lib/types";
 
 const chartData = [
   { month: "January", sales: 186 },
@@ -33,14 +35,18 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
-  const vehicles = getVehicles();
-  const totalVehicles = vehicles.length;
-  const availableVehicles = vehicles.filter(v => v.status === "Available").length;
-  const soldVehicles = vehicles.filter(v => v.status === "Sold").length;
-  const incomingVehicles = vehicles.filter(v => v.status === "Incoming").length;
+  const firestore = useFirestore();
+  const { data: vehicles } = useCollection<Vehicle>(
+    firestore ? query(collection(firestore, "vehicles")) : null
+  );
+
+  const totalVehicles = vehicles?.length ?? 0;
+  const availableVehicles = vehicles?.filter(v => v.status === "Available").length ?? 0;
+  const soldVehicles = vehicles?.filter(v => v.status === "Sold").length ?? 0;
+  const incomingVehicles = vehicles?.filter(v => v.status === "Incoming").length ?? 0;
   const totalRevenue = vehicles
-    .filter(v => v.status === 'Sold' && v.finalPrice)
-    .reduce((acc, v) => acc + (v.finalPrice || 0), 0);
+    ?.filter(v => v.status === 'Sold' && v.finalPrice)
+    .reduce((acc, v) => acc + (v.finalPrice || 0), 0) ?? 0;
 
   const stats = [
     { title: "Total Revenue", value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign },

@@ -2,7 +2,9 @@
 import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
+
 import { useUser } from './auth/use-user';
 import { FirebaseClientProvider } from './client-provider';
 import {
@@ -11,7 +13,11 @@ import {
   useFirebaseApp,
   useFirestore,
   useAuth,
+  useStorage
 } from './provider';
+
+import { useCollection } from './firestore/use-collection';
+import { useDoc } from './firestore/use-doc';
 
 function initializeFirebase() {
   if (getApps().length) {
@@ -20,12 +26,14 @@ function initializeFirebase() {
       firebaseApp: app,
       auth: getAuth(app),
       firestore: getFirestore(app),
+      storage: getStorage(app)
     };
   }
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
-  return { firebaseApp, auth, firestore };
+  const storage = getStorage(firebaseApp);
+  return { firebaseApp, auth, firestore, storage };
 }
 
 export {
@@ -37,5 +45,8 @@ export {
   useFirebaseApp,
   useFirestore,
   useAuth,
+  useStorage,
+  useCollection,
+  useDoc
 };
-export type { FirebaseApp, Auth, Firestore };
+export type { FirebaseApp, Auth, Firestore, FirebaseStorage };

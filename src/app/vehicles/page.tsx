@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from 'react';
-import { getVehicles, getMakes } from "@/lib/data";
+import { useState, useMemo } from 'react';
 import { VehicleCard } from "@/app/components/vehicle-card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from 'lucide-react';
-import type { VehicleType } from '@/lib/types';
+import { Loader2, Search } from 'lucide-react';
+import type { Vehicle, VehicleType } from '@/lib/types';
 import { Combobox } from '@/components/ui/combobox';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import { getMakes } from '@/lib/data';
 
 export default function VehiclesPage() {
-  const allVehicles = getVehicles();
+  const firestore = useFirestore();
+  const { data: allVehicles, loading } = useCollection<Vehicle>(
+    firestore ? query(collection(firestore, "vehicles")) : null
+  );
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMake, setSelectedMake] = useState('all');
   const [selectedFuel, setSelectedFuel] = useState('all');
@@ -20,20 +26,23 @@ export default function VehiclesPage() {
   const fuelTypes = ['all', 'Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG'];
   const vehicleTypes: ('all' | VehicleType)[] = ['all', 'Coupe', 'Hatchback', 'Minivan', 'Sedan', 'Pickup', 'SWagon', 'SUV', 'TWagon', 'Truck', 'Van'];
 
-  const filteredVehicles = allVehicles
-    .filter(vehicle => vehicle.status === 'Available')
-    .filter(vehicle => 
-      selectedMake === 'all' || vehicle.make === selectedMake
-    )
-    .filter(vehicle =>
-      selectedFuel === 'all' || vehicle.fuel === selectedFuel
-    )
-    .filter(vehicle =>
-      selectedType === 'all' || vehicle.vehicleType === selectedType
-    )
-    .filter(vehicle =>
-      `${vehicle.make} ${vehicle.model} ${vehicle.year}`.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredVehicles = useMemo(() => {
+    if (!allVehicles) return [];
+    return allVehicles
+      .filter(vehicle => vehicle.status === 'Available')
+      .filter(vehicle => 
+        selectedMake === 'all' || vehicle.make === selectedMake
+      )
+      .filter(vehicle =>
+        selectedFuel === 'all' || vehicle.fuel === selectedFuel
+      )
+      .filter(vehicle =>
+        selectedType === 'all' || vehicle.vehicleType === selectedType
+      )
+      .filter(vehicle =>
+        `${vehicle.make} ${vehicle.model} ${vehicle.year}`.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [allVehicles, searchTerm, selectedMake, selectedFuel, selectedType]);
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -87,8 +96,12 @@ export default function VehiclesPage() {
           </SelectContent>
         </Select>
       </div>
-
-      {filteredVehicles.length > 0 ? (
+      
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="h-10 w-10 animate-spin" />
+        </div>
+      ) : filteredVehicles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {filteredVehicles.map(vehicle => (
             <VehicleCard key={vehicle.id} vehicle={vehicle} />

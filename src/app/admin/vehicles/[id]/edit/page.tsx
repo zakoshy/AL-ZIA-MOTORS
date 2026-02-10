@@ -1,10 +1,25 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VehicleForm } from "@/app/admin/components/vehicle-form";
-import { getVehicleById } from "@/lib/data";
 import { notFound } from "next/navigation";
+import { useDoc, useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
+import type { Vehicle } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 
 export default function EditVehiclePage({ params }: { params: { id: string } }) {
-  const vehicle = getVehicleById(params.id);
+  const firestore = useFirestore();
+  const vehicleRef = firestore ? doc(firestore, "vehicles", params.id) : null;
+  const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!vehicle) {
     notFound();

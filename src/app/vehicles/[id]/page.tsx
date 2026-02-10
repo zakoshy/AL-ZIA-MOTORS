@@ -1,22 +1,35 @@
-import { getVehicleById } from "@/lib/data";
+"use client";
+
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, GaugeCircle, ShieldCheck, Tag, Car, CircleDollarSign, Fuel, Fingerprint, Clipboard, Cog, Settings, Palette } from "lucide-react";
+import { Calendar, GaugeCircle, ShieldCheck, Tag, Car, CircleDollarSign, Fuel, Fingerprint, Clipboard, Cog, Settings, Palette, Loader2 } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { formatCurrency } from "@/lib/utils";
+import { useDoc, useFirestore } from "@/firebase";
+import { doc } from "firebase/firestore";
+import type { Vehicle } from "@/lib/types";
 
 export default function VehicleDetailPage({ params }: { params: { id: string } }) {
-  const vehicle = getVehicleById(params.id);
+  const firestore = useFirestore();
+  const vehicleRef = firestore ? doc(firestore, "vehicles", params.id) : null;
+  const { data: vehicle, loading } = useDoc<Vehicle>(vehicleRef);
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
 
   if (!vehicle) {
     notFound();
   }
   
-  const featureImage = vehicle.images.find(img => img.isFeature) || vehicle.images[0];
-  const galleryImages = vehicle.images;
+  const galleryImages = vehicle.images?.length > 0 ? vehicle.images : [];
 
   const vehicleDetails = [
     { icon: Car, label: "Make & Model", value: `${vehicle.make} ${vehicle.model}` },
@@ -37,26 +50,34 @@ export default function VehicleDetailPage({ params }: { params: { id: string } }
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
-          <Carousel className="w-full">
-            <CarouselContent>
-              {galleryImages.map((image, index) => (
-                <CarouselItem key={index}>
-                  <Card className="overflow-hidden">
-                    <div className="aspect-[4/3] relative">
-                      <Image
-                        src={image.url}
-                        alt={`${vehicle.make} ${vehicle.model} - Image ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="ml-16" />
-            <CarouselNext className="mr-16"/>
-          </Carousel>
+          {galleryImages.length > 0 ? (
+            <Carousel className="w-full">
+              <CarouselContent>
+                {galleryImages.map((image, index) => (
+                  <CarouselItem key={image.id}>
+                    <Card className="overflow-hidden">
+                      <div className="aspect-[4/3] relative">
+                        <Image
+                          src={image.url}
+                          alt={`${vehicle.make} ${vehicle.model} - Image ${index + 1}`}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="ml-16" />
+              <CarouselNext className="mr-16"/>
+            </Carousel>
+          ) : (
+             <Card className="overflow-hidden">
+                <div className="aspect-[4/3] relative bg-muted flex items-center justify-center">
+                  <p className="text-muted-foreground">No Image Available</p>
+                </div>
+              </Card>
+          )}
         </div>
         
         <div>

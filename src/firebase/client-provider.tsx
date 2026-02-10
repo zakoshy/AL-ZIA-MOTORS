@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from './config';
 import { FirebaseProvider } from './provider';
 
@@ -11,35 +12,32 @@ type FirebaseServices = {
   firebaseApp: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
+  storage: FirebaseStorage;
 };
 
 function initializeFirebase(): FirebaseServices | null {
-  // This check prevents initialization on the server during build if env vars aren't available.
-  if (!firebaseConfig.apiKey) {
+  if (typeof window === 'undefined') {
     return null;
   }
   
-  if (getApps().length > 0) {
-    const app = getApp();
-    return {
-      firebaseApp: app,
-      auth: getAuth(app),
-      firestore: getFirestore(app),
-    };
+  if (!firebaseConfig.apiKey) {
+    console.error("Firebase API key is missing. Firebase could not be initialized.");
+    return null;
   }
   
-  const firebaseApp = initializeApp(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const firestore = getFirestore(firebaseApp);
-  return { firebaseApp, auth, firestore };
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  
+  return {
+    firebaseApp: app,
+    auth: getAuth(app),
+    firestore: getFirestore(app),
+    storage: getStorage(app)
+  };
 }
 
 export function FirebaseClientProvider({ children }: { children: React.ReactNode }) {
-  // useMemo ensures initialization happens only once.
   const services = useMemo(initializeFirebase, []);
 
-  // Always render the provider, but the value can be null if initialization fails.
-  // Hooks consuming the context will need to handle the null case.
   return (
     <FirebaseProvider value={services}>
       {children}

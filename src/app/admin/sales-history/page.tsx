@@ -1,9 +1,16 @@
-import { getVehicles } from "@/lib/data";
+"use client";
+
 import { SalesHistoryTable } from "@/app/admin/components/sales-history-table";
+import { useCollection, useFirestore } from "@/firebase";
+import type { Vehicle } from "@/lib/types";
+import { collection, query, where } from "firebase/firestore";
+import { Loader2 } from "lucide-react";
 
 export default function SalesHistoryPage() {
-  const allVehicles = getVehicles();
-  const soldVehicles = allVehicles.filter(v => v.status === "Sold");
+  const firestore = useFirestore();
+  const { data: soldVehicles, loading } = useCollection<Vehicle>(
+    firestore ? query(collection(firestore, "vehicles"), where("status", "==", "Sold")) : null
+  );
 
   return (
      <div className="grid flex-1 items-start gap-4">
@@ -12,7 +19,13 @@ export default function SalesHistoryPage() {
           Sales History
         </h2>
       </div>
-      <SalesHistoryTable vehicles={soldVehicles} />
+       {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <SalesHistoryTable vehicles={soldVehicles || []} />
+      )}
     </div>
   );
 }

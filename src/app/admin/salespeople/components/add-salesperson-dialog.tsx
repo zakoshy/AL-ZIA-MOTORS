@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -18,8 +17,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { createSalesperson } from "@/lib/actions";
 import { PlusCircle } from "lucide-react";
+import { useFirestore } from "@/firebase";
+import { addDoc, collection } from "firebase/firestore";
 
 const salespersonSchema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -32,29 +32,28 @@ export function AddSalespersonDialog({ onSalespersonAdded }: { onSalespersonAdde
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
   const form = useForm<SalespersonFormValues>({
     resolver: zodResolver(salespersonSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+    },
   });
 
   async function onSubmit(data: SalespersonFormValues) {
+    if (!firestore) return;
     setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("email", data.email);
 
     try {
-      const result = await createSalesperson(formData);
-      if ("message" in result) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
-        onSalespersonAdded();
-        setOpen(false);
-        form.reset();
-      } else {
-        throw new Error(result.errors ? JSON.stringify(result.errors) : "An unknown error occurred.");
-      }
+      await addDoc(collection(firestore, "salespeople"), data);
+      toast({
+        title: "Success",
+        description: "Salesperson added.",
+      });
+      onSalespersonAdded();
+      setOpen(false);
+      form.reset();
     } catch (error: any) {
       toast({
         title: "Error",

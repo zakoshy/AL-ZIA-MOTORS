@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { Salesperson } from "@/lib/types";
@@ -31,12 +30,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { deleteSalesperson } from "@/lib/actions";
+import { useFirestore } from "@/firebase";
+import { doc, deleteDoc } from "firebase/firestore";
 
 export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedSalesperson, setSelectedSalesperson] = useState<Salesperson | null>(null);
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const handleDeleteClick = (salesperson: Salesperson) => {
     setSelectedSalesperson(salesperson);
@@ -44,10 +45,10 @@ export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedSalesperson) return;
+    if (!selectedSalesperson || !firestore) return;
 
     try {
-      await deleteSalesperson(selectedSalesperson.id);
+      await deleteDoc(doc(firestore, "salespeople", selectedSalesperson.id));
       toast({
         title: "Success",
         description: "Salesperson deleted.",
@@ -61,7 +62,6 @@ export function SalespeopleTable({ salespeople }: { salespeople: Salesperson[] }
     } finally {
       setIsDeleteDialogOpen(false);
       setSelectedSalesperson(null);
-      // In a real app, you'd trigger a re-fetch of the data here.
     }
   };
 

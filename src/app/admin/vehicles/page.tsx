@@ -1,19 +1,31 @@
+"use client";
+
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { getVehicles } from "@/lib/data";
 import { VehicleTable } from "@/app/admin/components/vehicle-table";
 import type { Vehicle } from "@/lib/types";
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query } from "firebase/firestore";
 
 export default function AdminVehiclesPage() {
-  const vehicles: Vehicle[] = getVehicles();
+  const firestore = useFirestore();
+  const { data: vehicles, loading } = useCollection<Vehicle>(
+    firestore ? query(collection(firestore, 'vehicles')) : null
+  );
 
-  const statuses: Vehicle['status'][] = ["Available", "Incoming", "Sold"];
-  const allVehicles = [...vehicles];
-  const availableVehicles = vehicles.filter(v => v.status === "Available");
-  const incomingVehicles = vehicles.filter(v => v.status === "Incoming");
-  const soldVehicles = vehicles.filter(v => v.status === "Sold");
+  const { allVehicles, availableVehicles, incomingVehicles, soldVehicles } = useMemo(() => {
+    const all = vehicles || [];
+    return {
+      allVehicles: all,
+      availableVehicles: all.filter(v => v.status === "Available"),
+      incomingVehicles: all.filter(v => v.status === "Incoming"),
+      soldVehicles: all.filter(v => v.status === "Sold"),
+    };
+  }, [vehicles]);
+
 
   return (
     <div className="grid flex-1 items-start gap-4">
@@ -28,26 +40,32 @@ export default function AdminVehiclesPage() {
           </Link>
         </Button>
       </div>
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="available">Available</TabsTrigger>
-          <TabsTrigger value="incoming">Incoming</TabsTrigger>
-          <TabsTrigger value="sold">Sold</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-          <VehicleTable vehicles={allVehicles} />
-        </TabsContent>
-        <TabsContent value="available">
-          <VehicleTable vehicles={availableVehicles} />
-        </TabsContent>
-        <TabsContent value="incoming">
-          <VehicleTable vehicles={incomingVehicles} />
-        </TabsContent>
-        <TabsContent value="sold">
-          <VehicleTable vehicles={soldVehicles} />
-        </TabsContent>
-      </Tabs>
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <Tabs defaultValue="all">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="available">Available</TabsTrigger>
+            <TabsTrigger value="incoming">Incoming</TabsTrigger>
+            <TabsTrigger value="sold">Sold</TabsTrigger>
+          </TabsList>
+          <TabsContent value="all">
+            <VehicleTable vehicles={allVehicles} />
+          </TabsContent>
+          <TabsContent value="available">
+            <VehicleTable vehicles={availableVehicles} />
+          </TabsContent>
+          <TabsContent value="incoming">
+            <VehicleTable vehicles={incomingVehicles} />
+          </TabsContent>
+          <TabsContent value="sold">
+            <VehicleTable vehicles={soldVehicles} />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

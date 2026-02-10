@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Vehicle, VehicleType } from "@/lib/types";
+import type { Vehicle, VehicleImage, VehicleType } from "@/lib/types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,14 +12,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { optimizeImageAndFlag } from "@/ai/flows/image-optimization-and-flagging";
 import Image from "next/image";
-import { AlertCircle, CheckCircle, UploadCloud, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, UploadCloud, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { createVehicle, updateVehicle } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 import { getMakes } from "@/lib/data";
 import { Form, FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
 import { Combobox } from "@/components/ui/combobox";
+import { useFirestore, useStorage } from "@/firebase";
+import { addDoc, collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from "uuid";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const vehicleTypes: VehicleType[] = ["Coupe", "Hatchback", "Minivan", "Sedan", "Pickup", "SWagon", "SUV", "TWagon", "Truck", "Van"];
 
@@ -54,7 +59,12 @@ type ImagePreview = {
 export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   const { toast } = useToast();
   const router = useRouter();
-  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
+  const firestore = useFirestore();
+  const storage = useStorage();
+
+  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>(
+    vehicle?.images?.map(img => ({ fileName: img.id, dataUri: img.url })) || []
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -84,12 +94,15 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
 
   const handleFiles = async (files: FileList | null) => {
     if (!files) return;
-
+    setIsSubmitting(true);
     const filesToProcess = Array.from(files).filter(
       (file) => !imagePreviews.some((p) => p.fileName === file.name)
     );
 
-    if (filesToProcess.length === 0) return;
+    if (filesToProcess.length === 0) {
+        setIsSubmitting(false);
+        return;
+    };
 
     const fileProcessingPromises = filesToProcess.map((file) => {
       return new Promise<ImagePreview>((resolve, reject) => {
@@ -129,6 +142,8 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         title: 'Image Upload Error',
         description: 'There was a problem reading one of the files.',
       });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -152,34 +167,56 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
   };
 
   async function onSubmit(data: VehicleFormValues) {
+    if (!firestore || !storage) {
+        toast({ title: "Error", description: "Firebase not initialized.", variant: "destructive" });
+        return;
+    }
     setIsSubmitting(true);
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value) {
-        formData.append(key, String(value));
-      }
-    });
 
     try {
-      const result = vehicle 
-        ? await updateVehicle(vehicle.id, formData)
-        : await createVehicle(formData);
-      
-      if ('message' in result) {
-        toast({
-          title: "Success",
-          description: result.message,
-        });
+        const imageUrls: VehicleImage[] = await Promise.all(
+            imagePreviews.map(async (img, index) => {
+                // If the image is already a firebase storage url, don't re-upload
+                if (img.dataUri.includes('firebasestorage.googleapis.com')) {
+                    return { id: img.fileName, url: img.dataUri, isFeature: index === 0 };
+                }
+
+                const imageId = uuidv4();
+                const storageRef = ref(storage, `vehicles/${imageId}-${img.fileName}`);
+                const snapshot = await uploadString(storageRef, img.dataUri, 'data_url');
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                return { id: imageId, url: downloadURL, isFeature: index === 0 };
+            })
+        );
+        
+        const vehiclePayload = {
+            ...data,
+            images: imageUrls,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
+
+        if (vehicle) {
+            // Update
+            const vehicleRef = doc(firestore, 'vehicles', vehicle.id);
+            await setDoc(vehicleRef, { ...vehiclePayload, createdAt: vehicle.createdAt }, { merge: true });
+            toast({ title: "Success", description: "Vehicle updated successfully." });
+        } else {
+            // Create
+            const docRef = await addDoc(collection(firestore, 'vehicles'), vehiclePayload);
+            toast({ title: "Success", description: "Vehicle created successfully." });
+        }
         router.push("/admin/vehicles");
-      } else {
-        throw new Error("An unknown error occurred.");
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save vehicle. Please try again.",
-        variant: "destructive",
-      });
+        router.refresh();
+
+    } catch (error: any) {
+       console.error("Error saving vehicle: ", error);
+       const permissionError = new FirestorePermissionError({
+            path: vehicle ? `vehicles/${vehicle.id}` : 'vehicles',
+            operation: vehicle ? 'update' : 'create',
+            requestResourceData: data
+        });
+        errorEmitter.emit('permission-error', permissionError);
     } finally {
       setIsSubmitting(false);
     }
@@ -517,7 +554,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         <div className="flex justify-end gap-2">
           <Button variant="outline" type="button" onClick={() => router.back()}>Cancel</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save Vehicle"}
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Vehicle"}
           </Button>
         </div>
       </form>

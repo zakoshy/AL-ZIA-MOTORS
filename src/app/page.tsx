@@ -4,13 +4,23 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { VehicleCard } from "@/app/components/vehicle-card";
-import { getVehicles } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query, where, limit } from "firebase/firestore";
+import type { Vehicle } from "@/lib/types";
 
 export default function Home() {
-  const allVehicles = getVehicles();
-  const featuredVehicles = allVehicles.filter(v => v.status === 'Available').slice(0, 3);
+  const firestore = useFirestore();
+  const { data: featuredVehicles, loading } = useCollection<Vehicle>(
+    firestore 
+      ? query(
+          collection(firestore, "vehicles"), 
+          where('status', '==', 'Available'), 
+          limit(3)
+        )
+      : null
+  );
   
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-mercedes');
 
@@ -52,10 +62,18 @@ export default function Home() {
           <p className="mt-2 text-center text-muted-foreground max-w-2xl mx-auto">
             A curated selection of our finest available cars. Explore the best of JDM culture.
           </p>
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredVehicles.map((vehicle) => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
-            ))}
+          <div className="mt-10">
+            {loading ? (
+              <div className="flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredVehicles?.map((vehicle) => (
+                  <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                ))}
+              </div>
+            )}
           </div>
           <div className="text-center mt-12">
             <Button asChild variant="outline">
