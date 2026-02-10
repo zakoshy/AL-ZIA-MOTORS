@@ -20,8 +20,9 @@ function initializeFirebase(): FirebaseServices | null {
     return null;
   }
   
+  // If the API key is missing, we simply don't initialize Firebase.
+  // The app will gracefully fall back to using mock data.
   if (!firebaseConfig.apiKey) {
-    console.error("Firebase API key is missing. Firebase could not be initialized.");
     return null;
   }
   
