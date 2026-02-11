@@ -7,14 +7,14 @@ runConfig:
   maxInstances: 1
 env:
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: "AIzaSyCcoOKvevIytOD_qfbgMJtCZ29oxCFsUu4"
+    value: "AIzaSyCjz_uU9IYq-NJrJ02EUm_TnixroqnI5_M"
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: "studio-9311990628-6e934.firebaseapp.com"
+    value: "al-zia-trading-co-f2be5.firebaseapp.com"
   - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: "studio-9311990628-6e934"
+    value: "al-zia-trading-co-f2be5"
   - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: "studio-9311990628-6e934.firebasestorage.app"
+    value: "al-zia-trading-co-f2be5.firebasestorage.app"
   - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: "854594658560"
+    value: "318431738810"
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: "1:854594658560:web:7b72f144938d01971053e5"
+    value: "1:318431738810:web:bdf52e3297f6d1613b7b83"
