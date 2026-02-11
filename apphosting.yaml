@@ -21,4 +21,4 @@ env:
   - variable: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     value: "dzyhep1bx"
   - variable: NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-    value: "alzia company"
+    value: "ox1atiw5"
