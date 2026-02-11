@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { SiteHeader } from '@/app/components/site-header';
 import { SiteFooter } from '@/app/components/site-footer';
+import { WhatsappFab } from './whatsapp-fab';
 
 export function PageLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export function PageLayout({ children }: { children: React.ReactNode }) {
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <WhatsappFab phoneNumber="256776754426" />
     </div>
   );
 }
