@@ -1,3 +1,5 @@
+'use client';
+
 import { Car } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
