@@ -18,3 +18,7 @@ env:
     value: "318431738810"
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
     value: "1:318431738810:web:bdf52e3297f6d1613b7b83"
+  - variable: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+    value: "dzyhep1bx"
+  - variable: NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+    value: "alzia company"
