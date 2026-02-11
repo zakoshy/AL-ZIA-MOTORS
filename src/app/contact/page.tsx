@@ -13,7 +13,7 @@ import { WhatsappIcon } from '@/app/components/whatsapp-icon';
 
 export default function ContactPage() {
   const googleMapsUrl =
-    'https://www.google.com/maps/dir/?api=1&destination=Moi+Avenue,+opposite+NCBA+Bank,+Mombasa';
+    'https://maps.app.goo.gl/yYUVYVmSvNLbHf7u6';
   const whatsappUrl = 'https://wa.me/256776754426';
 
   return (
@@ -97,7 +97,7 @@ export default function ContactPage() {
           <CardContent>
             <div className="aspect-video w-full rounded-lg overflow-hidden border">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.848834047353!2d39.66418737584547!3d-4.059203945423015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x184012e4238e9309%3A0x94b3c37326c9d09!2sNCBA%20Bank%20-%20Moi%20Avenue!5e0!3m2!1sen!2ske"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d994.9621815918738!2d39.66427382920252!3d-4.059449132101783!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x184012e4238e9309%3A0x8f203641777d117!2sKarama%20Mobile%20Shop!5e0!3m2!1sen!2ske"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
