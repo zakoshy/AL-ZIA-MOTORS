@@ -37,6 +37,13 @@
                 },
                 "required": ["id", "url", "isFeature"]
             }
+        },
+        "features": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "A list of notable features for the vehicle."
         }
       },
       "required": ["make", "model", "year", "price", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel", "currency", "referenceNumber", "drivetrain", "transmission", "color", "vehicleType"]

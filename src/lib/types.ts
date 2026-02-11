@@ -37,5 +37,6 @@ export type Vehicle = {
   buyerDetails?: string;
   finalPrice?: number;
   salespersonId?: string;
+  features?: string[];
   updatedAt?: any; // To use with serverTimestamp
 };

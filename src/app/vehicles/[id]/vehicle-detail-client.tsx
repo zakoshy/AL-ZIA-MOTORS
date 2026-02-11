@@ -168,6 +168,21 @@ export function VehicleDetailClient({ vehicleId }: { vehicleId: string }) {
             </CardContent>
           </Card>
 
+          {vehicle.features && vehicle.features.length > 0 && (
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle>Features</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 list-disc list-inside text-muted-foreground">
+                        {vehicle.features.map((feature, index) => (
+                            <li key={index}>{feature}</li>
+                        ))}
+                    </ul>
+                </CardContent>
+            </Card>
+          )}
+
            {vehicle.status !== 'Sold' ? (
               <Button size="lg" className="w-full mt-6 text-lg" asChild>
                 <Link href="/contact">Inquire About This Vehicle</Link>

@@ -39,6 +39,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { saveVehicle } from '@/lib/mutations';
 import { v4 as uuidv4 } from 'uuid';
 import { useFirestore } from '@/firebase';
+import { Textarea } from '@/components/ui/textarea';
 
 const vehicleTypes: VehicleType[] = [
   'Coupe',
@@ -85,6 +86,7 @@ const vehicleFormSchema = z.object({
   saleDate: z.string().optional(),
   buyerDetails: z.string().optional(),
   finalPrice: z.coerce.number().positive('Final price must be a positive number.').optional(),
+  features: z.string().optional(),
 });
 
 type VehicleFormValues = z.infer<typeof vehicleFormSchema>;
@@ -118,6 +120,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           saleDate: vehicle.saleDate || '',
           buyerDetails: vehicle.buyerDetails || '',
           finalPrice: vehicle.finalPrice || undefined,
+          features: vehicle.features?.join('\n') || '',
         }
       : {
           make: '',
@@ -139,6 +142,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           arrivalDate: '',
           saleDate: '',
           buyerDetails: '',
+          features: '',
         },
   });
 
@@ -249,10 +253,14 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
         allImages[0].isFeature = true; // Default first image to feature if none is set
       }
 
+      const { features, ...restOfData } = data;
+      const featuresArray = features ? features.split('\n').filter(line => line.trim() !== '') : [];
+
       const vehicleData = {
-        ...data,
+        ...restOfData,
         id: vehicle?.id,
         images: allImages,
+        features: featuresArray,
       };
 
       await saveVehicle(db, vehicleData);
@@ -672,6 +680,33 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Vehicle Features</CardTitle>
+            <CardDescription>
+              List notable features for the vehicle, one per line.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="features"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Sunroof&#10;Leather seats&#10;Backup camera"
+                      rows={5}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
