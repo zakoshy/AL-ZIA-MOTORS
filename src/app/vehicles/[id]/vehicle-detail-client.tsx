@@ -196,7 +196,7 @@ export function VehicleDetailClient({ vehicleId }: { vehicleId: string }) {
           )}
 
            {vehicle.status !== 'Sold' ? (
-              <Button size="lg" className="w-full mt-6 text-lg" asChild>
+              <Button size="lg" className="w-full mt-6 text-lg bg-[#25D366] text-white hover:bg-[#128C7E]" asChild>
                 <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                     <WhatsappIcon className="h-6 w-6 mr-2" />
                     Inquire via WhatsApp
