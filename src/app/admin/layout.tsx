@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </span>
                 </div>
               </Link>
-               <Button variant="ghost" size="icon" onClick={handleLogout} className="group-data-[collapsible=icon]:hidden">
+               <Button variant="ghost" size="icon" onClick={handleLogout}>
                   <LogOut className="h-4 w-4" />
                </Button>
             </div>
