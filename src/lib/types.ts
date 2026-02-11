@@ -24,6 +24,7 @@ export type Vehicle = {
   transmission: 'Automatic' | 'Manual';
   color: string;
   fuel: 'Petrol' | 'Diesel' | 'Hybrid' | 'Electric' | 'LPG';
+  engineSize?: number;
   vehicleType: VehicleType;
   mileage: number;
   condition: 'New' | 'Used' | 'Damaged';

@@ -21,6 +21,7 @@ import {
   Settings,
   Palette,
   Loader2,
+  Zap,
 } from 'lucide-react';
 import {
   Carousel,
@@ -82,6 +83,11 @@ export function VehicleDetailClient({ vehicleId }: { vehicleId: string }) {
     { icon: Cog, label: 'Drivetrain', value: vehicle.drivetrain },
     { icon: Settings, label: 'Transmission', value: vehicle.transmission },
     { icon: Fuel, label: 'Fuel', value: vehicle.fuel },
+    ...(vehicle.engineSize ? [{
+      icon: Zap,
+      label: 'Engine Size',
+      value: `${vehicle.engineSize.toLocaleString()} CC`,
+    }] : []),
     {
       icon: GaugeCircle,
       label: 'Mileage',

@@ -64,6 +64,7 @@ const vehicleFormSchema = z.object({
   transmission: z.enum(['Automatic', 'Manual']),
   color: z.string().min(1, 'Color is required'),
   fuel: z.enum(['Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG']),
+  engineSize: z.coerce.number().positive('Engine size must be a positive number'),
   vehicleType: z.enum([
     'Coupe',
     'Hatchback',
@@ -116,6 +117,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     defaultValues: vehicle
       ? {
           ...vehicle,
+          engineSize: vehicle.engineSize || undefined,
           arrivalDate: vehicle.arrivalDate || '',
           saleDate: vehicle.saleDate || '',
           buyerDetails: vehicle.buyerDetails || '',
@@ -132,6 +134,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           transmission: 'Manual',
           color: '',
           fuel: 'Petrol',
+          engineSize: 1500,
           vehicleType: 'Sedan',
           mileage: 0,
           condition: 'Used',
@@ -458,6 +461,19 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
                     <SelectItem value="LPG">LPG</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="engineSize"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Engine Size (CC)</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
