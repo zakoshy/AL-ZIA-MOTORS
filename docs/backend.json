@@ -8,6 +8,7 @@
         "make": { "type": "string" },
         "model": { "type": "string" },
         "year": { "type": "number" },
+        "vin": { "type": "string" },
         "referenceNumber": { "type": "string" },
         "chassisNumber": { "type": "string" },
         "drivetrain": { "type": "string", "enum": ["4x4", "2WD", "AWD", "FWD", "RWD"] },
@@ -47,7 +48,7 @@
             "description": "A list of notable features for the vehicle."
         }
       },
-      "required": ["make", "model", "year", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel", "currency", "referenceNumber", "drivetrain", "transmission", "color", "vehicleType", "engineSize"]
+      "required": ["make", "model", "year", "mileage", "status", "inspectionStatus", "chassisNumber", "fuel", "currency", "referenceNumber", "drivetrain", "transmission", "color", "vehicleType", "engineSize", "vin"]
     },
     "salesperson": {
       "title": "Salesperson",

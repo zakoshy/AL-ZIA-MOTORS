@@ -60,6 +60,7 @@ const vehicleFormSchema = z.object({
   year: z.coerce.number().int().min(1900, 'Invalid year'),
   referenceNumber: z.string().min(1, 'Reference number is required'),
   chassisNumber: z.string().min(5, 'Chassis number is required.'),
+  vin: z.string().min(5, 'VIN is required.'),
   drivetrain: z.enum(['4x4', '2WD', 'AWD', 'FWD', 'RWD']),
   transmission: z.enum(['Automatic', 'Manual']),
   color: z.string().min(1, 'Color is required'),
@@ -117,6 +118,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
     defaultValues: vehicle
       ? {
           ...vehicle,
+          vin: vehicle.vin || '',
           price: vehicle.price || undefined,
           engineSize: vehicle.engineSize || undefined,
           arrivalDate: vehicle.arrivalDate || '',
@@ -131,6 +133,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
           year: new Date().getFullYear(),
           referenceNumber: '',
           chassisNumber: '',
+          vin: '',
           drivetrain: 'RWD',
           transmission: 'Manual',
           color: '',
@@ -368,6 +371,19 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Chassis Number</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="vin"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>VIN</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
