@@ -23,10 +23,18 @@ export async function saveVehicle(
   vehicle: Omit<Vehicle, 'id' | 'updatedAt'> & { id?: string }
 ) {
   const { id, ...vehicleData } = vehicle;
-  const dataToSave = {
+  const dataToSave: { [key: string]: any } = {
     ...vehicleData,
     updatedAt: serverTimestamp(),
   };
+
+  // Remove undefined fields before sending to Firestore
+  Object.keys(dataToSave).forEach(key => {
+    if (dataToSave[key] === undefined) {
+      delete dataToSave[key];
+    }
+  });
+
 
   try {
     if (id) {

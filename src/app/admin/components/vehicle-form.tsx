@@ -256,6 +256,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
       const featuresArray = features ? features.split('\n').filter(line => line.trim() !== '') : [];
 
       const vehicleData = {
+        ...(vehicle || {}),
         ...restOfData,
         id: vehicle?.id,
         images: allImages,
