@@ -5,13 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number | undefined, currency: 'USD' | 'KSh') {
+export function formatCurrency(amount: number | undefined, currency: 'USD' | 'KSh' | undefined) {
   if (amount === undefined) {
     return 'Ask for Price';
   }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: currency,
+    currency: currency || 'USD',
     minimumFractionDigits: 0,
   }).format(amount);
 };
