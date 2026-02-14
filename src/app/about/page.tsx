@@ -1,10 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Building, Globe, Target } from "lucide-react";
 
 export default function AboutPage() {
-  const aboutImage = PlaceHolderImages.find(p => p.id === 'about-us-hero');
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -17,15 +15,12 @@ export default function AboutPage() {
 
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
         <div className="relative aspect-video rounded-lg overflow-hidden border">
-           {aboutImage && (
-            <Image
-                src={aboutImage.imageUrl}
-                alt="AL-ZIA AUTOCARE showroom"
-                fill
-                className="object-cover"
-                data-ai-hint={aboutImage.imageHint}
-            />
-           )}
+           <Image
+              src="/about.jpg"
+              alt="AL-ZIA AUTOCARE showroom"
+              fill
+              className="object-cover"
+          />
         </div>
         <div className="space-y-6">
             <h2 className="font-headline text-3xl font-semibold">Our Story</h2>
