@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-4xl md:text-5xl font-bold">About AL-ZIA TRADING CO.LTD</h1>
+        <h1 className="font-headline text-4xl md:text-5xl font-bold">About AL-ZIA AUTOCARE LTD</h1>
         <p className="mt-2 text-muted-foreground max-w-3xl mx-auto">
           Your trusted partner in importing and exporting high-quality Japanese and Thailand vehicles worldwide.
         </p>
@@ -20,7 +20,7 @@ export default function AboutPage() {
            {aboutImage && (
             <Image
                 src={aboutImage.imageUrl}
-                alt="AL-ZIA TRADING showroom"
+                alt="AL-ZIA AUTOCARE showroom"
                 fill
                 className="object-cover"
                 data-ai-hint={aboutImage.imageHint}
@@ -30,7 +30,7 @@ export default function AboutPage() {
         <div className="space-y-6">
             <h2 className="font-headline text-3xl font-semibold">Our Story</h2>
             <p className="text-muted-foreground">
-             AL-ZIA TRADING CO. LTD is a premier vehicle import and export management platform specializing in high-quality Japanese and Thailand vehicles. We are dedicated to providing a transparent and efficient service, offering clear visibility of our inventory from the moment it arrives until it is sold. Our focus is on quality, reliability, and customer satisfaction.
+             AL-ZIA AUTOCARE LTD is a premier vehicle import and export management platform specializing in high-quality Japanese and Thailand vehicles. We are dedicated to providing a transparent and efficient service, offering clear visibility of our inventory from the moment it arrives until it is sold. Our focus is on quality, reliability, and customer satisfaction.
             </p>
              <p className="text-muted-foreground">
              We manage everything from inventory tracking and mileage management to handling all necessary documentation, ensuring a smooth process for our clients.

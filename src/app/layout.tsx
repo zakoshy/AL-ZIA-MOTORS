@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { PageLayout } from './components/page-layout';
 
 export const metadata: Metadata = {
-  title: 'AL-ZIA TRADING CO.LTD',
+  title: 'AL-ZIA AUTOCARE LTD',
   description: 'High-quality Japanese vehicle import and export.',
 };
 

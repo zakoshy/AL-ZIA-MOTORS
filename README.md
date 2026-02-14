@@ -1,7 +1,7 @@
-AL-ZIA TRADING CO. LTD
+AL-ZIA AUTOCARE LTD
 Overview
 
-AL-ZIA TRADING CO. LTD is a vehicle import and export management platform focused on high-quality Japanese and Thailand vehicles. The system provides transparent inventory tracking, accurate mileage management, and clear visibility of vehicles from arrival to sale.
+AL-ZIA AUTOCARE LTD is a vehicle import and export management platform focused on high-quality Japanese and Thailand vehicles. The system provides transparent inventory tracking, accurate mileage management, and clear visibility of vehicles from arrival to sale.
 
 Features
 
@@ -50,4 +50,4 @@ npm run dev
 
 License
 
-© AL-ZIA TRADING CO. LTD. All rights reserved.
+© AL-ZIA AUTOCARE LTD. All rights reserved.
