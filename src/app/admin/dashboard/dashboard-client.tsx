@@ -52,7 +52,7 @@ export function DashboardClient() {
       return { totalRevenue: 0, availableVehicles: 0, soldVehicles: 0, incomingVehicles: 0, salesByMonth: chartData };
     }
     
-    const sold = vehicles.filter((v) => v.status === 'Sold' && v.finalPrice);
+    const sold = vehicles.filter((v) => v.status === 'Sold');
     
     const monthlySales = [...chartData];
     sold.forEach(v => {
