@@ -357,7 +357,7 @@ export function VehicleForm({ vehicle }: { vehicle?: Vehicle }) {
             name="referenceNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reference Number (Optional)</FormLabel>
+                <FormLabel>Reference Number/ Serial number (Optional)</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
