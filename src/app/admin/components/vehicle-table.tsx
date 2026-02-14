@@ -93,6 +93,7 @@ export function VehicleTable({ vehicles, isLoading }: { vehicles: Vehicle[], isL
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">#</TableHead>
             <TableHead>Make/Model</TableHead>
             <TableHead className="hidden md:table-cell">Year</TableHead>
             <TableHead className="hidden lg:table-cell">Mileage</TableHead>
@@ -105,8 +106,9 @@ export function VehicleTable({ vehicles, isLoading }: { vehicles: Vehicle[], isL
           </TableRow>
         </TableHeader>
         <TableBody>
-          {vehicles.map((vehicle) => (
+          {vehicles.map((vehicle, index) => (
             <TableRow key={vehicle.id}>
+              <TableCell>{index + 1}</TableCell>
               <TableCell className="font-medium">
                 <div>{vehicle.make}</div>
                 <div className="text-sm text-muted-foreground">
